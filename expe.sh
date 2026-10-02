@@ -1,9 +1,8 @@
 set -e
 
 # parameters
-EXPE_NAME=paper
-CONF_NAME=configurations.csv
-NB_EXPES=20 # nb_confs * nb_benchmarks
+EXPE_NAME=stm32_v2
+NB_EXPES=32 # nb_confs * nb_benchmarks
 NB_ITERS=3
 NB_BENCHMARKS=4
 DEADLINE_ITERATION=3600
@@ -24,8 +23,6 @@ if [[ "$1" != "nomon" ]]; then
 	
 	# retrieve results and create plot
 	mkdir -p "results/$EXPE_NAME"
-	cp "results/$CONF_NAME" "results/$EXPE_NAME/configurations.csv"
 	scp raspberrypi:/root/dw_ina/results.csv "results/$EXPE_NAME/results.csv"
-	cd results && Rscript $PLOT_FILE "$EXPE_NAME/" "$GRAPH_TITLE"  && cd -
 fi
 

@@ -18,15 +18,17 @@ deadline = time.time()
 start_time = time.time()
 timing_samples = []
 
-if(len(sys.argv) < 7):
+if(len(sys.argv) < 9):
     print("Missing args")
     exit()
 nb_expes = int(sys.argv[1])
 nb_iter = int(sys.argv[2])
 offset = int(sys.argv[3]) # If there was other expes done before, just offset to correctly assign the new expes
-live = int(sys.argv[4])
-NB_BENCHMARKS = int(sys.argv[5])
-DEADLINE_ITERATION = int(sys.argv[6])
+iter_offset = int(sys.argv[4]) # If there was other expes done before, just offset to correctly assign the new expes
+live = int(sys.argv[5])
+NB_BENCHMARKS = int(sys.argv[6])
+DEADLINE_ITERATION = int(sys.argv[7])
+MAX_CURRENT = float(sys.argv[8])
 
 def next_expe(user_gpio, level, tick):
     global end_of_expe
@@ -68,7 +70,7 @@ ina228 = adafruit_ina228.INA228(i2c)
 print("INA calibration")
 
 # The shunt resistor is 1 Ohm
-ina228.set_calibration(7.5, 0.1)
+ina228.set_calibration(7.5, MAX_CURRENT)
 
 # Configuration of the INA: trade-off longer conversion time for better accuracy
 ina228.mode = adafruit_ina228.Mode.CONTINUOUS
@@ -120,8 +122,8 @@ with open(result_file, "w") as f:
     for expe_num, samples in enumerate(current_samples):
         for current_sample in samples:
             current, power, energy, shunt_voltage, bus_voltage, timestamp = current_sample
-            f.write(f"{expe_num//nb_expes},{(expe_num%nb_expes)//NB_BENCHMARKS},{expe_num%nb_expes+offset},{expe_num%NB_BENCHMARKS},{current},{power},{energy},{shunt_voltage},{bus_voltage},{timestamp},\n")
+            f.write(f"{expe_num//nb_expes+iter_offset},{(expe_num%nb_expes)//NB_BENCHMARKS+offset},{expe_num%nb_expes+offset*NB_BENCHMARKS},{expe_num%NB_BENCHMARKS},{current},{power},{energy},{shunt_voltage},{bus_voltage},{timestamp},\n")
     for expe_num, timing_sample in enumerate(timing_samples):
-        f.write(f"{expe_num//nb_expes},{(expe_num%nb_expes)//NB_BENCHMARKS},{expe_num%nb_expes+offset},{expe_num%NB_BENCHMARKS},,,,,,,{timing_sample}\n")
+        f.write(f"{expe_num//nb_expes+iter_offset},{(expe_num%nb_expes)//NB_BENCHMARKS+offset},{expe_num%nb_expes+offset*NB_BENCHMARKS},{expe_num%NB_BENCHMARKS},,,,,,,{timing_sample}\n")
 
 print(f"Done at {datetime.now()} in {datetime.now() - start_date}s")
