@@ -28,13 +28,15 @@
 
 // Benchmark sizes
 #define BENCH_PRIME_SIZE 2000
-#define BENCH_MAT_SIZE 102
+#define BENCH_MAT_SIZE 100
+#define BENCH_MAT_SIZE_DOUBLE 70
 
 // Benchmark correct results
-#define CORRECT_PRIME 669
-#define CORRECT_MAT_MUL 1073741824
-#define CORRECT_MAT_MUL_FLOAT_UPPER 0.525 
-#define CORRECT_MAT_MUL_FLOAT_LOWER 0.524 
+#define CORRECT_PRIME 303
+#define CORRECT_MAT_MUL 1141371108
+#define CORRECT_MAT_MUL_FLOAT 63883268.0 
+#define CORRECT_MAT_MUL_DOUBLE_LOWER 21570919.092350 
+#define CORRECT_MAT_MUL_DOUBLE_UPPER 21570919.092360 
 
 #define SEED 42
 
@@ -936,8 +938,27 @@ void run_benchmarks() {
 	volatile float res_mat_mul_float = benchmark_mat_mul_float(BENCH_MAT_SIZE);
 	HAL_Delay(100);
 	
-	volatile double res_mat_mul_double = benchmark_mat_mul_double(BENCH_MAT_SIZE/2);
+	volatile double res_mat_mul_double = benchmark_mat_mul_double(BENCH_MAT_SIZE_DOUBLE);
 	HAL_Delay(100);
+	
+	// Verification
+	if(res_prime != CORRECT_PRIME 
+			|| res_mat_mul != CORRECT_MAT_MUL 
+			|| res_mat_mul_float != CORRECT_MAT_MUL_FLOAT
+			|| res_mat_mul_double < CORRECT_MAT_MUL_DOUBLE_LOWER 
+			|| res_mat_mul_double > CORRECT_MAT_MUL_DOUBLE_UPPER) {
+	
+		// Activate and turn on LED 
+		GPIO_InitTypeDef GPIO_InitStruct = {0};
+		GPIO_InitStruct.Pin = GPIO_PIN_13;
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+		
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+		while(1){} // Don't continue execution
+	}
 }
 
 /* USER CODE END 0 */
