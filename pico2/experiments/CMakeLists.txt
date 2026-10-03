@@ -14,6 +14,6 @@ target_link_libraries(benchmarks
 				hardware_sleep
 				hardware_rosc
 				hardware_gpio)
-pico_enable_stdio_usb(benchmarks 0)
+pico_enable_stdio_usb(benchmarks 1)
 pico_enable_stdio_uart(benchmarks 0)
 pico_add_extra_outputs(benchmarks)
