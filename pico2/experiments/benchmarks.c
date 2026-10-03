@@ -6,25 +6,25 @@
 
 // Benchmark sizes
 #define BENCH_PRIME_SIZE 2000
-#define BENCH_PRIME_SIZE_LPOSC 200
 #define BENCH_MAT_SIZE 200
 #define BENCH_MAT_SIZE_DOUBLE 140
+#define BENCH_PRIME_SIZE_LPOSC 200
 #define BENCH_MAT_SIZE_LPOSC 20
 #define BENCH_MAT_SIZE_DOUBLE_LPOSC 14
 
 // Benchmark correct results
 #define CORRECT_PRIME 303
-#define CORRECT_MAT_MUL 4294967295
-#define CORRECT_MAT_MUL_FLOAT_UPPER 0.524 
-#define CORRECT_MAT_MUL_FLOAT_LOWER 0.524 
-#define CORRECT_MAT_MUL_DOUBLE_UPPER 0.5241578750190518665164063349948264658451080322265625
-#define CORRECT_MAT_MUL_DOUBLE_LOWER 0.5241578750190518665164063349948264658451080322265625
+#define CORRECT_MAT_MUL 1377790330
+#define CORRECT_MAT_MUL_FLOAT_UPPER 513006273.000000 
+#define CORRECT_MAT_MUL_FLOAT_LOWER 513006271.000000 
+#define CORRECT_MAT_MUL_DOUBLE_UPPER 176452630.184880
+#define CORRECT_MAT_MUL_DOUBLE_LOWER 176452630.184870
 #define CORRECT_PRIME_LPOSC 46
-#define CORRECT_MAT_MUL_LPOSC 4294967295
-#define CORRECT_MAT_MUL_FLOAT_UPPER_LPOSC 0.524 
-#define CORRECT_MAT_MUL_FLOAT_LOWER_LPOSC 0.524 
-#define CORRECT_MAT_MUL_DOUBLE_UPPER_LPOSC 0.5241578750190518665164063349948264658451080322265625
-#define CORRECT_MAT_MUL_DOUBLE_LOWER_LPOSC 0.5241578750190518665164063349948264658451080322265625
+#define CORRECT_MAT_MUL_LPOSC 131482027
+#define CORRECT_MAT_MUL_FLOAT_UPPER_LPOSC 519851.937600 
+#define CORRECT_MAT_MUL_FLOAT_LOWER_LPOSC 519851.937400 
+#define CORRECT_MAT_MUL_DOUBLE_UPPER_LPOSC 171011.912417
+#define CORRECT_MAT_MUL_DOUBLE_LOWER_LPOSC 171011.912415
 
 #define SEED 42
 
@@ -80,7 +80,7 @@ void compute_primes_core1() {
 	multicore_fifo_push_blocking(cpt);
 }
 
-uint8_t benchmark_prime_multicores(uint benchmark_size) {
+uint32_t benchmark_prime_multicores(uint benchmark_size) {
 	multicore_reset_core1();
 	multicore_launch_core1(compute_primes_core1);
 	multicore_fifo_push_blocking(benchmark_size/2);
@@ -89,14 +89,7 @@ uint8_t benchmark_prime_multicores(uint benchmark_size) {
 	uint cpt_core0 = compute_primes(2, benchmark_size/2);
 	uint cpt_core1 = multicore_fifo_pop_blocking();
 	gpio_put(expe_pin, 0);
-	uint8_t correct = 1;
-	if(benchmark_size == 200 && cpt_core0 + cpt_core1 != CORRECT_PRIME_LPOSC) {
-		correct = 0;
-	}
-	if(benchmark_size == 5000 && cpt_core0 + cpt_core1 != CORRECT_PRIME) {
-		correct = 0;
-	}
-	return correct;
+	return cpt_core0 + cpt_core1;
 }
 
 uint32_t benchmark_mat_mul(uint32_t size) {
