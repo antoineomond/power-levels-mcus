@@ -14,7 +14,6 @@ started = 0
 init = 0 # Necessary when expe_pin is initially at 1 and reset to 0
 s = 0
 end_of_expe = False
-deadline = time.time()
 start_time = time.time()
 timing_samples = []
 
@@ -40,7 +39,6 @@ def next_expe(user_gpio, level, tick):
     global started
     global done
     global s
-    global deadline
     global start_time
     if(level == 1):
         if(init == 0):
@@ -48,7 +46,6 @@ def next_expe(user_gpio, level, tick):
             ina228.reset_accumulators()
         init = 1
         started = 1
-        deadline = time.time()
         s = tick
     if(init == 1 and level == 0):
         t = tick-s
@@ -77,7 +74,7 @@ ina228.mode = adafruit_ina228.Mode.CONTINUOUS
 ina228.bus_voltage_conv_time = adafruit_ina228.ConversionTime.TIME_1052_US
 ina228.shunt_voltage_conv_time = adafruit_ina228.ConversionTime.TIME_1052_US
 ina228.temp_conv_time = adafruit_ina228.ConversionTime.TIME_1052_US
-ina228.averaging_count = adafruit_ina228.AveragingCount.COUNT_16
+ina228.averaging_count = adafruit_ina228.AveragingCount.COUNT_1
 ina228.adc_range = 0
 ina228.shunt_tempco = 25
 ina228.temp_comp = 1
@@ -92,27 +89,16 @@ current_samples = [[] for _ in range(nb_expes*nb_iter)]
 live_samples = [[] for _ in range(nb_expes*nb_iter)]
 start_date = datetime.now()
 print(f"Sampling starts at {start_date}")
-while not done and (time.time() - deadline) < DEADLINE_ITERATION:
+while not done:
     if started and expe_num < nb_expes*nb_iter:  # only measure current when expe starts 
         try:
             current_val = ina228.current*1000
             current_samples[expe_num].append((current_val, ina228.power*1000, ina228.energy*1000, ina228.shunt_voltage, ina228.bus_voltage, round(time.time()-start_time, 3)))
-            if live:
-                live_samples[expe_num].append(current_val)
-                try:
-                    print(f"{current_val:.3f}, mean: {mean(live_samples[expe_num]):.3f}, std: {stdev(live_samples[expe_num]):.3f}, median: {median(live_samples[expe_num]):.3f}, max: {max(live_samples[expe_num]):.3f}, min: {min(live_samples[expe_num]):.3f}")
-                # In case race condition of expe_num (empty array not accepted in statistics functions)
-                except StatisticsError:
-                    pass
-                except ValueError:
-                    pass
         # Handles race condition on expe_num
         except IndexError:
             pass
-        except OSError as e:
-            print(e)
 
-    time.sleep(0.025) # 40Hz sampling
+    #time.sleep(0.004) # 250Hz sampling
 
 # Write results
 print("Sampling ends")

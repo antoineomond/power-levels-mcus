@@ -1,12 +1,12 @@
 set -e
 
 # parameters
-EXPE_NAME=stm32_v2
-NB_EXPES=32 # nb_confs * nb_benchmarks
-NB_ITERS=3
+EXPE_NAME=stm32_v5_20_iters
+NB_EXPES=24 # nb_confs * nb_benchmarks
+NB_ITERS=20
 NB_BENCHMARKS=4
 DEADLINE_ITERATION=3600
-MAX_CURRENT=0.022
+MAX_CURRENT=0.010
 OFFSET=0
 ITER_OFFSET=0
 

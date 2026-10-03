@@ -1008,8 +1008,8 @@ int main(void)
 		run_benchmarks();
 		SystemClock_Config_HSE_25MHz();
 		run_benchmarks();
-		SystemClock_Config_PLL_64MHz_default();
-		run_benchmarks();
+		// SystemClock_Config_PLL_64MHz_default();
+		// run_benchmarks();
 		
 		// Minimum freq
 		SystemClock_Config_HSI_1MHz();
@@ -1020,8 +1020,8 @@ int main(void)
 		run_benchmarks();
 		
 		// Minimum vreg
-		SystemClock_Config_PLL_64MHz_minvreg();
-		run_benchmarks();
+		// SystemClock_Config_PLL_64MHz_minvreg();
+		// run_benchmarks();
 		
 		// Minimum vreg, minimum freq
 		SystemClock_Config_PLL_1MHz_minvreg();
