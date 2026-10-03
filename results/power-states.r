@@ -46,13 +46,9 @@ nb_discards <- 15
 combined_df <- df
 
 combined_df <- combined_df %>%
-	filter(iteration_num == 0)
-
-combined_df <- combined_df %>%
 	group_by(iteration_num, expe_num) %>%
 	filter(between(row_number(), nb_discards, n()-nb_discards)) %>%
 	ungroup()
-
 
 pwr <- combined_df %>%
 	group_by(clock_source, vreg_output, clock_freq) %>%

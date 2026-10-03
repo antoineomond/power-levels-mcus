@@ -7,7 +7,7 @@ if [ $1 == "pico2" ]; then
 	mkdir -p pico2/build
 	cd pico2/build
 	cmake -DPICO_BOARD=pico2 ..
-	make -j4
+	bear -- make -j4
 	cd ..
 fi
 if [ $1 == "stm32" ]; then
