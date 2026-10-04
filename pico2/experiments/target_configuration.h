@@ -95,15 +95,15 @@ static inline uint set_clock_source_xosc() {
 	// Disable unused clock sources
 	pll_deinit(pll_sys);
 	pll_deinit(pll_usb);
-	rosc_disable();
+	// rosc_disable();
+	
+	TIME_RATE = 1;
 	
 	return clk_src_freq;
 }
 
 // Clock source leverages
 static inline uint set_clock_source_lposc(uint trim) {
-	set_clock_source_xosc();
-	
 	// Specify lposc frequency
 	powman_clear_bits(&powman_hw->lposc, POWMAN_LPOSC_TRIM_BITS);
 	powman_set_bits(&powman_hw->lposc, POWMAN_LPOSC_TRIM_BITS & (trim << POWMAN_LPOSC_TRIM_LSB));
@@ -117,20 +117,13 @@ static inline uint set_clock_source_lposc(uint trim) {
 	clock_set_reported_hz(clk_sys, clk_src_freq);
 	
 	// Disable unused clock sources
-	pll_deinit(pll_sys);
-	pll_deinit(pll_usb);
 	xosc_disable();
-	rosc_disable();
+	// rosc_disable();
 	
 	return clk_src_freq;
 }
 static inline uint set_clock_source_rosc(uint div, uint range, uint freqa, uint freqb) {
-	rosc_enable();
-	
-	// Put xosc as clk_ref to count rosc frequency
-	xosc_init();
-	clock_configure_undivided(clk_ref, CLOCKS_CLK_REF_CTRL_SRC_VALUE_XOSC_CLKSRC, 0, XOSC_HZ);
-	//restart_all_ticks();
+	// rosc_enable();
 	
 	// Specify rosc frequency
 	rosc_set_div(div);
@@ -140,47 +133,35 @@ static inline uint set_clock_source_rosc(uint div, uint range, uint freqa, uint 
 	
 	uint clk_src_freq = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_ROSC_CLKSRC) * KHZ;
 	
-	clock_configure_undivided(clk_sys, CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX, CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_ROSC_CLKSRC, clk_src_freq); // clk_freq to set later in the code
-	//clock_configure_undivided(clk_ref, CLOCKS_CLK_REF_CTRL_SRC_VALUE_ROSC_CLKSRC_PH, 0, clk_src_freq);
-	//restart_all_ticks();
-	//uint divider = ((float)(clk_src_freq/MHZ));
-	//if(divider == 0) {
-	//	divider = 1;
-	//}
-	//TIME_RATE = ((float)clk_src_freq/(float)MHZ)/(float)divider; // clk_ref takes clock_freq/MHz as reference to compute time, trimming all remaining KHz. This leads to incorrect time tracking  
-	
-	// Disable unused clock sources
-	pll_deinit(pll_sys);
-	pll_deinit(pll_usb);
-	//xosc_disable();
-	
+	//clock_configure_undivided(clk_sys, CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX, CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_ROSC_CLKSRC, clk_src_freq); // clk_freq to set later in the code
+	clock_configure_undivided(clk_ref, CLOCKS_CLK_REF_CTRL_SRC_VALUE_ROSC_CLKSRC_PH, 0, clk_src_freq);
+	restart_all_ticks();
+	uint divider = ((float)(clk_src_freq/MHZ));
+	if(divider == 0) {
+		divider = 1;
+	}
+	TIME_RATE = ((float)clk_src_freq/(float)MHZ)/(float)divider; // clk_ref takes clock_freq/MHz as reference to compute time, trimming all remaining KHz. This leads to incorrect time tracking  
+	xosc_disable();
 	return clk_src_freq;
 }
 
+
 static inline uint set_clock_source_pll(uint vco_freq, uint div1, uint div2) {
-	set_sys_clock_pll(vco_freq, div1, div2);
-	sleep_ms(100);
-	
-	uint clk_src_freq = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_PLL_SYS_CLKSRC_PRIMARY) * KHZ;
-	
-	clock_configure_undivided(clk_sys, CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX, CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, clk_src_freq);
-	clock_configure_undivided(clk_peri, 0, CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLK_SYS, clk_src_freq);
-	
-	// Disable unused clock sources
-	pll_deinit(pll_usb);
-	rosc_disable();
-	
-	return clk_src_freq;
+	pll_init(pll_sys, PLL_SYS_REFDIV, vco_freq, div1, div2);
+	uint32_t freq = vco_freq / (div1 * div2);
+	clock_configure_undivided(clk_sys,
+									CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX,
+									CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS,
+									freq);
+	// clock_configure_undivided(clk_peri, 0, CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, freq);
+	return freq;
 }
 
 static inline uint switch_configuration_from_parameter(const struct config* config) {
 	// Set the voltage, clock source and frequency (measure the frequency for rosc and lposc)
 	// pll must be deactivated to reach vreg outputs below 0.9V
-	if(config->vreg_output <= VREG_VOLTAGE_0_85)
-		set_clock_source_xosc();
+	set_clock_source_xosc();
 	sleep_ms(100);
-	vreg_disable_voltage_limit();
-	powman_clear_bits(&powman_hw->bod, 0x000001f1);
 	vreg_set_voltage(config->vreg_output);
 	sleep_ms(100);
 	
