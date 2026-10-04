@@ -6,3 +6,4 @@ results/*
 !results/esp32/*
 !results/stm32/*
 !results/pico2/*
+managed_components/
