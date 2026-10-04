@@ -15,17 +15,12 @@ typedef enum CLK_SRC {
  } CLK_SRC;
 
 // Benchmark sizes
-#define BENCH_PRIME_SIZE 200
+#define BENCH_PRIME_SIZE 2000
 #define BENCH_MAT_SIZE 140
-#define BENCH_MAT_SIZE_DOUBLE 100
 
 // Benchmark correct results
 #define CORRECT_PRIME 303
 #define CORRECT_MAT_MUL 1721141896
-#define CORRECT_MAT_MUL_FLOAT_UPPER 176452289.0
-#define CORRECT_MAT_MUL_FLOAT_LOWER 176452287.0
-#define CORRECT_MAT_MUL_DOUBLE_UPPER 63883357.365418
-#define CORRECT_MAT_MUL_DOUBLE_LOWER 63883357.365416
 
 #define EXPE_PIN 5
 #define SEED 42
@@ -142,43 +137,6 @@ float benchmark_mat_mul_float(uint32_t size) {
 	return checksum;
 }
 
-double benchmark_mat_mul_double(uint32_t size) {
-	volatile double checksum = 0;
-	srand(SEED);
-	// Three 32-bits matrixes of 72 elements account for 486 kB, which should account for all 8 memory banks in SRAM0 and SRAM1
-	double *A = malloc(sizeof(double)*size*size);
-	double *B = malloc(sizeof(double)*size*size);
-	double *C = malloc(sizeof(double)*size*size);
-	for(int i = 0; i < size; i++) {
-		for(int j = 0; j < size; j++) {
-			A[size*i + j] = (double)rand()/(double)(RAND_MAX/16);
-			B[size*i + j] = (double)rand()/(double)(RAND_MAX/16);
-			C[size*i + j] = 0;
-		}
-	}
-	set_gpio(EXPE_PIN, 1);
-	for(int i = 0; i < size; i++) {
-		for(int j = 0; j < size; j++) {
-			for(int k = 0; k < size; k++) {
-				C[size*i + j] += A[size*i + k] * B[size*k + j];
-			}
-		}
-	}
-	set_gpio(EXPE_PIN, 0);
-	
-	// Prevent compiler optimisation and check results
-	checksum = 0;
-	for(int i = 0; i < size; i++) {
-		for(int j = 0; j < size; j++) {
-			checksum = checksum + C[size*i +j];
-		}
-	}
-	free(A);
-	free(B);
-	free(C);
-	return checksum;
-}
-
 void run_benchmarks() {
 	vTaskDelay(pdMS_TO_TICKS(20000));
 	
@@ -188,19 +146,10 @@ void run_benchmarks() {
 	volatile uint32_t res_mat_mul = benchmark_mat_mul(BENCH_MAT_SIZE);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	
-	volatile float res_mat_mul_float = benchmark_mat_mul_float(BENCH_MAT_SIZE);
-	vTaskDelay(pdMS_TO_TICKS(100));
-	
-	volatile double res_mat_mul_double = benchmark_mat_mul_double(BENCH_MAT_SIZE_DOUBLE);
-	vTaskDelay(pdMS_TO_TICKS(100));
 	
 	// Verification
 	if(res_prime != CORRECT_PRIME 
-			|| res_mat_mul != CORRECT_MAT_MUL 
-			|| res_mat_mul_float < CORRECT_MAT_MUL_FLOAT_LOWER
-			|| res_mat_mul_float > CORRECT_MAT_MUL_FLOAT_UPPER
-			|| res_mat_mul_double < CORRECT_MAT_MUL_DOUBLE_LOWER 
-			|| res_mat_mul_double > CORRECT_MAT_MUL_DOUBLE_UPPER) {
+			|| res_mat_mul != CORRECT_MAT_MUL) {
 
 		// Activate and turn on LED 
 		blink_led();
@@ -259,7 +208,6 @@ void app_main(void) {
 
 	// Expe pin
 	init_gpio(5);
-  configure_led();
 	
   // Put all the other gpios in input mode with pull_down resistors
 	uint8_t unused_gpios[] = {0, 1, 2, 3, 13, 14, 4, 10, 11, 25, 12, 22, 27, 26};
@@ -293,24 +241,18 @@ void app_main(void) {
 	//set_cpu_clock(XTAL, 1);
   //vTaskDelay(pdMS_TO_TICKS(1000));
 	//
-	//blink_led();
-  //vTaskDelay(pdMS_TO_TICKS(1000));
-	//blink_led();
 	
   configure_led();
 	
 	blink_led();
-  vTaskDelay(pdMS_TO_TICKS(20000));
+  vTaskDelay(pdMS_TO_TICKS(10000));
 	blink_led();
 	
 	while (true) {
-		//run_benchmarks();
-		set_cpu_clock(PLL_64M, 1);
-		run_benchmarks();
-		set_cpu_clock(PLL_96M, 1);
-		run_benchmarks();
-		set_cpu_clock(RC, 1);
-		run_benchmarks();
+		// set_cpu_clock(PLL_64M, 1);
+		// run_benchmarks();
+		// set_cpu_clock(PLL_96M, 1);
+		// run_benchmarks();
 		
 		// Minimum freq >1MHz
 		//set_cpu_clock(XTAL, 32);
@@ -318,6 +260,8 @@ void app_main(void) {
 		set_cpu_clock(PLL_64M, 64);
 		run_benchmarks();
 		set_cpu_clock(PLL_96M, 96);
+		run_benchmarks();
+		set_cpu_clock(RC, 1);
 		run_benchmarks();
 		//set_cpu_clock(RC, 8);
 		//run_benchmarks();

@@ -7,7 +7,7 @@ if [ $1 == "pico2" ]; then
 	mkdir -p pico2/build
 	cd pico2/build
 	cmake -DPICO_BOARD=pico2 ..
-	bear -- make -j4
+	make -j4
 	cd ..
 fi
 if [ $1 == "stm32" ]; then
@@ -18,6 +18,6 @@ if [ $1 == "stm32" ]; then
 	arm-none-eabi-objcopy -O binary expes-power.elf expes-power.bin
 fi
 if [ $1 == "esp32" ]; then
-	cd esp32/esp-idf && . ./export.sh && cd -
-	cd esp32/cpufreq && idf.py build && cd -
+	cd $ESP_IDF_PATH && . ./export.sh && cd -
+	cd esp32 && idf.py build && cd -
 fi
