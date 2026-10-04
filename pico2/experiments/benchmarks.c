@@ -15,8 +15,8 @@
 // Benchmark correct results
 #define CORRECT_PRIME 303
 #define CORRECT_MAT_MUL 1377790330
-#define CORRECT_MAT_MUL_FLOAT_UPPER 513006273.000000 
-#define CORRECT_MAT_MUL_FLOAT_LOWER 513006271.000000 
+#define CORRECT_MAT_MUL_FLOAT_UPPER 513006273.000000
+#define CORRECT_MAT_MUL_FLOAT_LOWER 513006271.000000
 #define CORRECT_MAT_MUL_DOUBLE_UPPER 176452630.184880
 #define CORRECT_MAT_MUL_DOUBLE_LOWER 176452630.184870
 #define CORRECT_PRIME_LPOSC 46
@@ -25,6 +25,29 @@
 #define CORRECT_MAT_MUL_FLOAT_LOWER_LPOSC 519851.937400 
 #define CORRECT_MAT_MUL_DOUBLE_UPPER_LPOSC 171011.912417
 #define CORRECT_MAT_MUL_DOUBLE_LOWER_LPOSC 171011.912415
+
+// Parameters
+#define PLL_MIN_VCO_FREQ_HZ 760*MHZ 
+#define PLL_MAX_POSTDIV 7 
+#define PLL_DEFAULT_VCO_FREQ_HZ PLL_SYS_VCO_FREQ_HZ 
+#define PLL_DEFAULT_POSTDIV1 PLL_SYS_POSTDIV1
+#define PLL_DEFAULT_POSTDIV2 PLL_SYS_POSTDIV2
+
+#define ROSC_MAX_DIVIDER 30
+#define ROSC_MIN_RANGE ROSC_CTRL_FREQ_RANGE_VALUE_LOW
+#define ROSC_MIN_DRIVE_STRENGTH 0x0000
+#define ROSC_MAX_DRIVE_STRENGTH 0x7777
+#define ROSC_DEFAULT_DIVIDER 8
+#define ROSC_DEFAULT_RANGE ROSC_MIN_RANGE
+#define ROSC_DEFAULT_DRIVE_STRENGTH ROSC_MIN_DRIVE_STRENGTH
+
+#define LPOSC_MIN_TRIM 0x000
+#define LPOSC_MAX_TRIM 0x3f0
+#define LPOSC_DEFAULT_TRIM LPOSC_MIN_TRIM
+
+#define VREG_DEFAULT VREG_VOLTAGE_DEFAULT
+#define VREG_MIN_PLL VREG_VOLTAGE_0_90
+#define VREG_MIN_XOSC_ROSC_LPOSC VREG_VOLTAGE_0_75
 
 #define SEED 42
 
@@ -256,13 +279,28 @@ void execute_benchmarks(bool islposc) {
 	}
 }
 
+void led_blink(uint count) {
+	gpio_init(PICO_DEFAULT_LED_PIN);
+	gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+	for (int i = 0; i < count; i++) {
+		gpio_put(PICO_DEFAULT_LED_PIN, 1);
+		sleep_us((int)(TIME_RATE*250000));
+		gpio_put(PICO_DEFAULT_LED_PIN, 0);
+		sleep_us((int)(TIME_RATE*250000));
+	}
+}
+
 int main() {
-	sleep_us((int)(100000*TIME_RATE)); // For unknown reason, not sleeping here sometimes makes firmware upload
+	sleep_ms(1000);
 	// Set GPIO pin to advertise experiments start and end
 	gpio_init(expe_pin);
 	gpio_set_dir(expe_pin, GPIO_OUT);
 	
 	pull_down_gpios();
+	vreg_disable_voltage_limit();
+	powman_clear_bits(&powman_hw->bod, 0x000001f1);
+	
+	sleep_ms(10000);
 	
 	while(true) {
 		// Baseline
@@ -280,27 +318,27 @@ int main() {
 		execute_benchmarks(false);
 		
 		// min voltage
-		// switch_configuration_from_parameter(&(config){PLL_SYS, PLL_DEFAULT_VCO_FREQ_HZ, PLL_DEFAULT_POSTDIV1, PLL_DEFAULT_POSTDIV2, 0, 0, 0, 0, 0, VREG_MIN_PLL, true});
+		// switch_configuration_from_parameter(&(config){PLL_SYS, PLL_DEFAULT_VCO_FREQ_HZ, PLL_DEFAULT_POSTDIV1, PLL_DEFAULT_POSTDIV2, 0, 0, 0, 0, 0, VREG_VOLTAGE_0_90, true});
 		// execute_benchmarks(false);
-		switch_configuration_from_parameter(&(config){ROSC, 0, 0, 0, ROSC_DEFAULT_DIVIDER, ROSC_DEFAULT_RANGE, ROSC_DEFAULT_DRIVE_STRENGTH, ROSC_DEFAULT_DRIVE_STRENGTH, 0, VREG_VOLTAGE_0_80, true});
+		switch_configuration_from_parameter(&(config){ROSC, 0, 0, 0, ROSC_DEFAULT_DIVIDER, ROSC_DEFAULT_RANGE, ROSC_DEFAULT_DRIVE_STRENGTH, ROSC_DEFAULT_DRIVE_STRENGTH, 0, VREG_VOLTAGE_0_85, true});
 		execute_benchmarks(false);
 		switch_configuration_from_parameter(&(config){XOSC, 0, 0, 0, 0, 0, 0, 0, 0, VREG_VOLTAGE_1_00, true});
 		execute_benchmarks(false);
 		switch_configuration_from_parameter(&(config){XOSC, 0, 0, 0, 0, 0, 0, 0, 0, VREG_VOLTAGE_0_90, true});
 		execute_benchmarks(false);
-		switch_configuration_from_parameter(&(config){XOSC, 0, 0, 0, 0, 0, 0, 0, 0, VREG_VOLTAGE_0_80, true});
+		switch_configuration_from_parameter(&(config){XOSC, 0, 0, 0, 0, 0, 0, 0, 0, VREG_VOLTAGE_0_85, true});
 		execute_benchmarks(false);
 		
 		// Min frequency, min voltage
-		switch_configuration_from_parameter(&(config){PLL_SYS, PLL_MIN_VCO_FREQ_HZ, PLL_MAX_POSTDIV, PLL_MAX_POSTDIV, 0, 0, 0, 0, 0, VREG_MIN_PLL, true});
+		switch_configuration_from_parameter(&(config){PLL_SYS, PLL_MIN_VCO_FREQ_HZ, PLL_MAX_POSTDIV, PLL_MAX_POSTDIV, 0, 0, 0, 0, 0, VREG_VOLTAGE_0_90, true});
 		execute_benchmarks(false);
-		switch_configuration_from_parameter(&(config){ROSC, 0, 0, 0, ROSC_MAX_DIVIDER, ROSC_MIN_RANGE, ROSC_MIN_DRIVE_STRENGTH, ROSC_MIN_DRIVE_STRENGTH, 0, VREG_DEFAULT, true});
+		switch_configuration_from_parameter(&(config){ROSC, 0, 0, 0, ROSC_MAX_DIVIDER, ROSC_MIN_RANGE, ROSC_MIN_DRIVE_STRENGTH, ROSC_MIN_DRIVE_STRENGTH, 0, VREG_VOLTAGE_0_85, true});
 		execute_benchmarks(false);
 		
 		// LPOSC
-	  switch_configuration_from_parameter(&(config){LPOSC, 0, 0, 0, 0, 0, 0, 0, 0x20, VREG_VOLTAGE_1_10, true});
+	 switch_configuration_from_parameter(&(config){LPOSC, 0, 0, 0, 0, 0, 0, 0, 0x20, VREG_DEFAULT, true});
 		execute_benchmarks(true);
-	  switch_configuration_from_parameter(&(config){LPOSC, 0, 0, 0, 0, 0, 0, 0, 0x20, VREG_VOLTAGE_0_80, true});
+	 switch_configuration_from_parameter(&(config){LPOSC, 0, 0, 0, 0, 0, 0, 0, 0x20, VREG_VOLTAGE_0_80, true});
 		execute_benchmarks(true);
 	}
 }

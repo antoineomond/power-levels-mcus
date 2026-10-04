@@ -46,6 +46,9 @@ nb_discards <- 15
 combined_df <- df
 
 combined_df <- combined_df %>%
+	filter(iteration_num < 20)
+
+combined_df <- combined_df %>%
 	group_by(iteration_num, expe_num) %>%
 	filter(between(row_number(), nb_discards, n()-nb_discards)) %>%
 	ungroup()
@@ -56,8 +59,14 @@ pwr <- combined_df %>%
 	ungroup()
 
 selective_labeller <- function(value) {
-	labels <- str_split_fixed(value, "\\.", 3)
-	paste0("Clk source: ", labels[, 1], ", Freq: ", round(as.numeric(labels[, 3]) / 1000000, 2), "MHz", ", VREG: ", labels[, 2])
+  labels <- stringr::str_split_fixed(value, "\\.", 4)
+	freq_mhz <- as.numeric(labels[, 4])
+	freq_string <- ifelse(
+		freq_mhz/1000000 < 1,
+		paste0(round(freq_mhz/1000, 2), "kHz"),
+		paste0(round(freq_mhz/1000000, 2), "MHz")
+	)
+  paste0("Clk source: ", labels[, 1], ", Freq: ", freq_string, ", VREG: ", labels[, 2], ".", labels[, 3])
 }
 
 

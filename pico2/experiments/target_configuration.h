@@ -61,6 +61,42 @@ static inline void restart_all_ticks(void) {
 	start_all_ticks();
 }
 
+static inline void switch_to_default_configuration() {
+	xosc_init();
+	clock_configure_undivided(clk_ref, CLOCKS_CLK_REF_CTRL_SRC_VALUE_XOSC_CLKSRC, 0, XOSC_HZ);
+	clock_configure_undivided(clk_sys, CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX, CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_XOSC_CLKSRC, XOSC_HZ);
+	restart_all_ticks();
+	hw_clear_bits(&powman_hw->vreg_ctrl, POWMAN_PASSWORD_BITS | POWMAN_VREG_CTRL_DISABLE_VOLTAGE_LIMIT_BITS);
+	powman_clear_bits(&powman_hw->bod, 0x000001f1);
+	powman_set_bits(&powman_hw->bod, POWMAN_BOD_VSEL_RESET);
+	vreg_set_voltage(VREG_VOLTAGE_DEFAULT);
+	sleep_us((int)(1*1000000*TIME_RATE));
+	pll_deinit(pll_sys);
+	pll_deinit(pll_usb);
+	pll_init(pll_sys, PLL_SYS_REFDIV, PLL_SYS_VCO_FREQ_HZ, PLL_SYS_POSTDIV1, PLL_SYS_POSTDIV2);
+	pll_init(pll_usb, PLL_USB_REFDIV, PLL_USB_VCO_FREQ_HZ, PLL_USB_POSTDIV1, PLL_USB_POSTDIV2);
+	clock_configure_undivided(clk_sys, CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX, CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, SYS_CLK_HZ);
+	clock_configure_undivided(clk_peri,
+									0,
+									CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLK_SYS,
+									SYS_CLK_HZ);
+	clock_configure_undivided(clk_usb,
+									0, // No GLMUX
+									CLOCKS_CLK_USB_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
+									USB_CLK_HZ);
+	clock_configure_undivided(clk_adc,
+									0, // No GLMUX
+									CLOCKS_CLK_ADC_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
+									USB_CLK_HZ);
+	clock_configure_undivided(clk_hstx,
+									0,
+									CLOCKS_CLK_HSTX_CTRL_AUXSRC_VALUE_CLK_SYS,
+									SYS_CLK_HZ);
+	
+	stdio_init_all();
+	sleep_ms(1000);
+}
+
 static inline uint set_clock_source_xosc() {
 	xosc_init();
 	clock_configure_undivided(clk_ref, CLOCKS_CLK_REF_CTRL_SRC_VALUE_XOSC_CLKSRC, 0, XOSC_HZ);
