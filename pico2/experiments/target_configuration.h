@@ -95,7 +95,7 @@ static inline uint set_clock_source_xosc() {
 	// Disable unused clock sources
 	pll_deinit(pll_sys);
 	pll_deinit(pll_usb);
-	// rosc_disable();
+	rosc_disable();
 	
 	TIME_RATE = 1;
 	
@@ -118,12 +118,11 @@ static inline uint set_clock_source_lposc(uint trim) {
 	
 	// Disable unused clock sources
 	xosc_disable();
-	// rosc_disable();
 	
 	return clk_src_freq;
 }
 static inline uint set_clock_source_rosc(uint div, uint range, uint freqa, uint freqb) {
-	// rosc_enable();
+	rosc_restart();
 	
 	// Specify rosc frequency
 	rosc_set_div(div);
