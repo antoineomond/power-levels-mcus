@@ -7,3 +7,4 @@ results/*
 !results/stm32/*
 !results/pico2/*
 managed_components/
+compile_commands.json
