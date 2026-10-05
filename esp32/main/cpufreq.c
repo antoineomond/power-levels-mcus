@@ -203,44 +203,14 @@ void app_main(void) {
   // Keep this delay otherwise random crash
   vTaskDelay(pdMS_TO_TICKS(1000));
 
-  // Set cpu freq
-	//set_cpu_clock(XTAL, 1);
-
 	// Expe pin
 	init_gpio(5);
 	
   // Put all the other gpios in input mode with pull_down resistors
-	uint8_t unused_gpios[] = {0, 1, 2, 3, 13, 14, 4, 10, 11, 25, 12, 22, 27, 26};
+	uint8_t unused_gpios[] = {0, 1, 2, 3, 13, 14, 4, 24, 23, 10, 11, 25, 12, 8, 22, 9, 27, 26};
 	for (int i = 0; i < sizeof(unused_gpios)/sizeof(uint8_t); i++) {
 		disable_gpio(unused_gpios[i]);
 	}
-	
-	//blink_led();
-  //vTaskDelay(pdMS_TO_TICKS(1000));
-	//blink_led();
-	
-	//disable_uart();
-  //vTaskDelay(pdMS_TO_TICKS(1000));
-	//
-	//blink_led();
-  //vTaskDelay(pdMS_TO_TICKS(1000));
-	//blink_led();
-
-	// Configure power management to lock the frequency safely
-	//esp_pm_config_t pm_config = {
-	//		.max_freq_mhz = 32, // Your target XTAL frequency
-	//		.min_freq_mhz = 8,
-	//		.light_sleep_enable = false
-	//};
-
-	//// This safely scales the voltage up first, then alters the clock tree
-	//ESP_ERROR_CHECK(esp_pm_configure(&pm_config));
-  //vTaskDelay(pdMS_TO_TICKS(3000));
-	
-	// Baseline
-	//set_cpu_clock(XTAL, 1);
-  //vTaskDelay(pdMS_TO_TICKS(1000));
-	//
 	
   configure_led();
 	
@@ -249,12 +219,8 @@ void app_main(void) {
 	blink_led();
 	
 	while (true) {
-		// set_cpu_clock(PLL_64M, 1);
-		// run_benchmarks();
-		// set_cpu_clock(PLL_96M, 1);
-		// run_benchmarks();
 		
-		// Minimum freq >1MHz
+		// max current 8mA
 		//set_cpu_clock(XTAL, 32);
 		//run_benchmarks();
 		set_cpu_clock(PLL_64M, 64);
@@ -262,6 +228,12 @@ void app_main(void) {
 		set_cpu_clock(PLL_96M, 96);
 		run_benchmarks();
 		set_cpu_clock(RC, 1);
+		run_benchmarks();
+		
+		// max current 22mA
+		set_cpu_clock(PLL_64M, 1);
+		run_benchmarks();
+		set_cpu_clock(PLL_96M, 1);
 		run_benchmarks();
 		//set_cpu_clock(RC, 8);
 		//run_benchmarks();
