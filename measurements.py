@@ -17,17 +17,20 @@ end_of_expe = False
 start_time = time.time()
 timing_samples = []
 
-if(len(sys.argv) < 9):
+if(len(sys.argv) < 11):
     print("Missing args")
     exit()
-nb_expes = int(sys.argv[1])
+nb_confs = int(sys.argv[1])
 nb_iter = int(sys.argv[2])
 offset = int(sys.argv[3]) # If there was other expes done before, just offset to correctly assign the new expes
 iter_offset = int(sys.argv[4]) # If there was other expes done before, just offset to correctly assign the new expes
 live = int(sys.argv[5])
 NB_BENCHMARKS = int(sys.argv[6])
 DEADLINE_ITERATION = int(sys.argv[7])
-MAX_CURRENT = float(sys.argv[8])
+MAX_CURRENT_LOWER = float(sys.argv[8])
+MAX_CURRENT_UPPER = float(sys.argv[9])
+NUM_CONF_SWITCH = float(sys.argv[10])
+nb_expes = nb_confs * NB_BENCHMARKS
 
 def next_expe(user_gpio, level, tick):
     global end_of_expe
@@ -60,6 +63,9 @@ def next_expe(user_gpio, level, tick):
         if(expe_num >= nb_expes*nb_iter):
              done = 1
         print(expe_num)
+        if(expe_num/NB_BENCHMARKS == NUM_CONF_SWITCH):
+            ina228.set_calibration(7.5, MAX_CURRENT_UPPER)
+            print(f"MAX_CURRENT={MAX_CURRENT_UPPER}A")
 
 i2c = board.I2C()
 ina228 = adafruit_ina228.INA228(i2c)
@@ -67,7 +73,8 @@ ina228 = adafruit_ina228.INA228(i2c)
 print("INA calibration")
 
 # The shunt resistor is 1 Ohm
-ina228.set_calibration(7.5, MAX_CURRENT)
+ina228.set_calibration(7.5, MAX_CURRENT_LOWER)
+print(f"MAX_CURRENT={MAX_CURRENT_LOWER}A")
 
 # Configuration of the INA: trade-off longer conversion time for better accuracy
 ina228.mode = adafruit_ina228.Mode.CONTINUOUS
