@@ -58,7 +58,7 @@ get_plot <- function(df_expe) {
 	# compute power outside to prevent duplicate values
 	pwr <- df_expe %>%
 		group_by(clock_source, vreg_output, clock_freq, benchmark_name) %>%
-		summarise(power_median = median(current_sample, na.rm = TRUE), mtimestamp = max(current_timestamp, na.rm = TRUE)) %>%
+		summarise(power_median = median(power_sample, na.rm = TRUE), mtimestamp = max(current_timestamp, na.rm = TRUE)) %>%
 		ungroup()
 	df_expe <- df_expe %>%
 		mutate(
@@ -66,12 +66,12 @@ get_plot <- function(df_expe) {
 			vreg_output = factor(vreg_output, levels = c("1.10V", "1.00V", "0.90V", "0.85V", "1.26-1.38V", "1.20-1.32V", "1.08-1.20V"))
 		)
 	myColors <- c("prime" = "black", "prime_multicores" = "grey", "mat_mul" = "cyan", "mat_mul_float" = "blue", "mat_mul_double" = "dark blue", "PLL96" = "blue", "HSI" = "blue", "RC_FAST" = "purple", "HSE" = "purple")
-	p <- ggplot(df_expe , aes(x = current_timestamp, y = current_sample, color=benchmark_name, group=interaction(clock_source, vreg_output, clock_freq, benchmark_name))) +
+	p <- ggplot(df_expe , aes(x = current_timestamp, y = power_sample, color=benchmark_name, group=interaction(clock_source, vreg_output, clock_freq, benchmark_name))) +
 		geom_line(na.rm = TRUE) +
 		geom_hline(data=pwr, aes(yintercept = power_median, color = benchmark_name), linetype = "dashed", linewidth = 0.3, alpha = 0.5, show.legend = FALSE) +
 		geom_label_repel(
-			data=pwr, 
-			aes(x=Inf, y = power_median, color = benchmark_name, label = sprintf("%.2f mA", power_median)), 
+			data=pwr,
+			aes(x=Inf, y = power_median, color = benchmark_name, label = sprintf("%.2f mW", power_median)),
 			inherit.aes = FALSE, show.legend = FALSE, hjust=1.15,
 			direction = "y",
 			point.size = NA,
@@ -80,13 +80,13 @@ get_plot <- function(df_expe) {
 		) +
 		scale_x_continuous(expand = expansion(mult = c(0, 0.4))) +
 		scale_y_continuous(n.breaks=5) +
-		facet_wrap(~interaction(clock_source, vreg_output, clock_freq, sep="|", lex.order = TRUE), nrow = 3, scales = "free", labeller = as_labeller(selective_labeller)) +
+		facet_wrap(~interaction(clock_source, vreg_output, clock_freq, sep="|", lex.order = TRUE), ncol = 1, scales = "free", labeller = as_labeller(selective_labeller)) +
 		labs(x = "Timestamp in seconds", y = "Power usage in mW", title = "") +
 		scale_colour_manual(name = "Benchmark name:", values = myColors) +
-		guides(color = guide_legend(nrow = 1, byrow = TRUE)) +
+		guides(color = guide_legend(nrow = 3, byrow = TRUE, title.position = "top", title.hjust = 0.5)) +
 		theme(
 			legend.position = "top",
-			strip.text = ggtext::element_markdown(),
+			strip.text = ggtext::element_markdown(size=10),
 			plot.title = element_text(hjust = 0.5),
 			plot.subtitle = element_text(hjust = 0.5),
 			plot.margin = margin(0, 0, 0, 0, "pt")

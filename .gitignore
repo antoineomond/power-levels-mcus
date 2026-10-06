@@ -8,3 +8,4 @@ results/*
 !results/pico2/*
 managed_components/
 compile_commands.json
+results/cpy_overleaf.sh
