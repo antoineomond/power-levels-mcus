@@ -8,36 +8,27 @@ library(tidyr)
 library(grid)
 library(gridExtra)
 library(RColorBrewer)
-source("filters-pico2.r")
-options(dplyr.print_max = 1e9, pillar.width = Inf)
+source("power-states.r")
 
-MHz <- 1000000
-kHz <- 1000
-args <- commandArgs(trailingOnly = TRUE)
-folder <- args[1] 
-graph_title <- args[2] 
-last_benchmark <- "mat_mul_double"
-name <- paste(folder, "results", sep="")
-df <- read.csv(paste(name, ".csv", sep=""))
-df <- df %>%
-  mutate(config_row = expe_num + 1)
-print(paste(folder, "configurations.csv", sep=""))
-parameters <- read.csv(paste(folder, "configurations.csv", sep=""))
-df <- df %>%
-	left_join(
-		parameters %>% mutate(config_row = row_number()),
-		by = "config_row"
-	) %>%
-	select(-config_row)
-
-df_expe <- get_combined_df(df)
+combined_df <- combined_df %>%
+		filter(clock_source != "LPOSC") %>%
+		filter(clock_source != "XOSC" | vreg_output %in% c("1.10V", "0.85V"))
+baseline_name <- "PLL | 1 | 10V | 150MHz"
+baseline_mapfunc <- function(lvls) { return(gsub("(C|V|L|z|I|1|2|3)\\.", "\\1 | ", lvls)) }
+df_expe <- combined_df
 unit <- ifelse(df_expe$clock_freq < MHz, "kHz", "MHz")
 div  <- ifelse(df_expe$clock_freq < MHz, kHz, MHz)
+df_expe <- df_expe %>%
+	mutate(
+		clock_source = factor(clock_source, levels = c("HSI", "HSE", "PLL", "XOSC", "ROSC", "PLL96", "PLL64", "RC_FAST")),
+		vreg_output = factor(vreg_output, levels = c("1.10V", "1.00V", "0.90V", "0.85V"))
+	)
 #df_expe$gp <- interaction(df_expe$clock_source, paste(round(df_expe$pll_vco_freq/div, 1), "MHz", sep=""), paste(round(df_expe$clock_freq/div, 1), unit, sep=""))
-df_expe$gp <- interaction(df_expe$clock_source, df_expe$vreg_output, paste(round(df_expe$clock_freq/div, 1), unit, sep=""))
+df_expe$gp <- interaction(df_expe$clock_source, df_expe$vreg_output, paste(round(df_expe$clock_freq/div, 1), unit, sep=""), lex.order = TRUE)
 lvls <- levels(df_expe$gp)
 #df_expe$gp <- factor(df_expe$gp, levels = unique(df_expe$gp[order(df_expe$clock_source, df_expe$pll_vco_freq, -df_expe$clock_freq)]))
 df_expe$gp <- factor(df_expe$gp, levels = unique(df_expe$gp[order(df_expe$clock_source, df_expe$vreg_output, -df_expe$clock_freq)]))
+
 
 # energy per benchmark table
 energy_consumption_table <- df_expe %>%
@@ -69,7 +60,6 @@ energy_consumption_table <- energy_consumption_table %>%
 		energy_mat_mul_double_rel = round(energy_mat_mul_double - energy_mat_mul_float, 2), 
 		total_energy = energy_mat_mul_double
 	)
-write.csv(energy_consumption_table, "energy_consumption_table.csv")	
 energy_consumption_table <- energy_consumption_table %>%
 	mutate(
 		gain_baseline = ((total_energy - energy_consumption_table[energy_consumption_table$gp == baseline_name, ]$total_energy) / energy_consumption_table[energy_consumption_table$gp == baseline_name, ]$total_energy) * 100

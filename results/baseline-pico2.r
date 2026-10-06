@@ -5,6 +5,7 @@ combined_df <- combined_df %>%
 		(clock_source == "ROSC" & vreg_output == "1.10V" & clock_freq %/% 1000000 == 10) |
 		(clock_source == "XOSC" & vreg_output == "1.10V" & clock_freq %/% 1000000 == 12))
 cp <- get_plot(combined_df)
+#pdf(paste(folder, "baseline.pdf", sep=""), width = 4 * 3, height = 5)
 pdf(paste(folder, "baseline.pdf", sep=""))
 print(cp)
 dev.off()
