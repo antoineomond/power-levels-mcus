@@ -63,9 +63,12 @@ def next_expe(user_gpio, level, tick):
         if(expe_num >= nb_expes*nb_iter):
              done = 1
         print(expe_num)
-        if(expe_num/NB_BENCHMARKS == NUM_CONF_SWITCH):
+        if (expe_num/NB_BENCHMARKS)%nb_confs == NUM_CONF_SWITCH:
             ina228.set_calibration(7.5, MAX_CURRENT_UPPER)
             print(f"MAX_CURRENT={MAX_CURRENT_UPPER}A")
+        if (expe_num%nb_expes == 0):
+            ina228.set_calibration(7.5, MAX_CURRENT_LOWER)
+            print(f"MAX_CURRENT={MAX_CURRENT_LOWER}A")
 
 i2c = board.I2C()
 ina228 = adafruit_ina228.INA228(i2c)
