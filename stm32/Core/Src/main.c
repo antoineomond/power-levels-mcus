@@ -1003,28 +1003,24 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 	while(1) {
-		// Baseline
+		// max current: 6mA
 		SystemClock_Config_HSI_16MHz();
 		run_benchmarks();
 		SystemClock_Config_HSE_25MHz();
 		run_benchmarks();
-		// SystemClock_Config_PLL_64MHz_default();
-		// run_benchmarks();
-		
-		// Minimum freq
 		SystemClock_Config_HSI_1MHz();
 		run_benchmarks();
 		SystemClock_Config_HSE_156250000Hz();
 		run_benchmarks();
 		SystemClock_Config_PLL_1MHz();
 		run_benchmarks();
-		
-		// Minimum vreg
-		// SystemClock_Config_PLL_64MHz_minvreg();
-		// run_benchmarks();
-		
-		// Minimum vreg, minimum freq
 		SystemClock_Config_PLL_1MHz_minvreg();
+		run_benchmarks();
+		
+		// max current 12mA
+		SystemClock_Config_PLL_64MHz_default();
+		run_benchmarks();
+		SystemClock_Config_PLL_64MHz_minvreg();
 		run_benchmarks();
 	}
 
