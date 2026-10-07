@@ -9,6 +9,7 @@ library(tidyr)
 library(grid)
 library(gridExtra)
 library(RColorBrewer)
+library(cowplot)
 options(dplyr.print_max = 1e9, pillar.width = Inf)
 
 MHz <- 1000000
@@ -82,8 +83,8 @@ get_plot <- function(df_expe) {
 		scale_y_continuous(n.breaks=5) +
 		facet_wrap(~interaction(clock_source, vreg_output, clock_freq, sep="|", lex.order = TRUE), ncol = 1, scales = "free", labeller = as_labeller(selective_labeller)) +
 		labs(x = "Timestamp in seconds", y = "Power usage in mW", title = "") +
-		scale_colour_manual(name = "Benchmark name:", values = myColors) +
-		guides(color = guide_legend(nrow = 3, byrow = TRUE, title.position = "top", title.hjust = 0.5)) +
+		scale_colour_manual(name = "Benchmark name:", values = myColors, breaks=names(myColors)) +
+		guides(color = guide_legend(nrow = 1, byrow = TRUE, title.position = "left", title.hjust = 0.5)) +
 		theme(
 			legend.position = "top",
 			strip.text = ggtext::element_markdown(size=10),
