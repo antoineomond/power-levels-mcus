@@ -2,9 +2,10 @@ build/
 .cache/
 Release/
 results/*
-!results/*.r
-!results/esp32/*
-!results/stm32/*
-!results/pico2/*
+!results/pico2/
+!results/esp32/
+!results/stm32/
+*.pdf
+*.png
 managed_components/
 compile_commands.json
