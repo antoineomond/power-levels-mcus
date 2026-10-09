@@ -321,7 +321,7 @@ int main() {
 	  switch_configuration_from_parameter(&(config){LPOSC, 0, 0, 0, 0, 0, 0, 0, 0x20, VREG_VOLTAGE_0_80, true});
 		execute_benchmarks(true);
 		
-		// max current 20mA
+		// max current 22mA
 		switch_configuration_from_parameter(&(config){PLL_SYS, PLL_DEFAULT_VCO_FREQ_HZ, PLL_DEFAULT_POSTDIV1, PLL_DEFAULT_POSTDIV2, 0, 0, 0, 0, 0, VREG_DEFAULT, true});
 		execute_benchmarks(false);
 		switch_configuration_from_parameter(&(config){PLL_SYS, PLL_DEFAULT_VCO_FREQ_HZ, PLL_DEFAULT_POSTDIV1, PLL_DEFAULT_POSTDIV2, 0, 0, 0, 0, 0, VREG_VOLTAGE_0_90, true});

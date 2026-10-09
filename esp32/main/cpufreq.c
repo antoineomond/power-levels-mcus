@@ -1,8 +1,8 @@
+#include "target_configuration.h" 
 #include <stdatomic.h>
 #include <stdint.h>
 #include <stdio.h>
 #include "esp_system.h"
-#include "soc/rtc.h"
 #include "esp_log.h"
 #include "led.h"
 #include "driver/gpio.h"
@@ -10,17 +10,19 @@
 #include "driver/uart.h"
 #include "esp_pm.h"
 
-typedef enum CLK_SRC {
-  XTAL=1, PLL_64M=2, PLL_96M=3, RC=4
- } CLK_SRC;
-
 // Benchmark sizes
 #define BENCH_PRIME_SIZE 2000
-#define BENCH_MAT_SIZE 140
+#define BENCH_MAT_SIZE 70
+#define BENCH_MAT_SIZE_FLOAT 70
+#define BENCH_MAT_SIZE_DOUBLE 50
 
 // Benchmark correct results
 #define CORRECT_PRIME 303
-#define CORRECT_MAT_MUL 1721141896
+#define CORRECT_MAT_MUL 1273131485
+#define CORRECT_MAT_MUL_FLOAT_UPPER 21570899.0
+#define CORRECT_MAT_MUL_FLOAT_LOWER 21570897.0
+#define CORRECT_MAT_MUL_DOUBLE_UPPER 7818683.784350
+#define CORRECT_MAT_MUL_DOUBLE_LOWER 7818683.784330
 
 #define EXPE_PIN 5
 #define SEED 42
@@ -137,57 +139,77 @@ float benchmark_mat_mul_float(uint32_t size) {
 	return checksum;
 }
 
+double benchmark_mat_mul_double(uint32_t size) {
+	volatile double checksum = 0;
+	srand(SEED);
+	// Three 32-bits matrixes of 72 elements account for 486 kB, which should account for all 8 memory banks in SRAM0 and SRAM1
+	double *A = malloc(sizeof(double)*size*size);
+	double *B = malloc(sizeof(double)*size*size);
+	double *C = malloc(sizeof(double)*size*size);
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			A[size*i + j] = (double)rand()/(double)(RAND_MAX/16);
+			B[size*i + j] = (double)rand()/(double)(RAND_MAX/16);
+			C[size*i + j] = 0;
+		}
+	}
+	set_gpio(EXPE_PIN, 1);
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			for(int k = 0; k < size; k++) {
+				C[size*i + j] += A[size*i + k] * B[size*k + j];
+			}
+		}
+	}
+	set_gpio(EXPE_PIN, 0);
+	
+	// Prevent compiler optimisation and check results
+	checksum = 0;
+	for(int i = 0; i < size; i++) {
+		for(int j = 0; j < size; j++) {
+			checksum = checksum + C[size*i +j];
+		}
+	}
+	free(A);
+	free(B);
+	free(C);
+	return checksum;
+}
+
 void run_benchmarks() {
 	vTaskDelay(pdMS_TO_TICKS(20000));
 	
 	volatile uint32_t res_prime = benchmark_prime(BENCH_PRIME_SIZE);
 	vTaskDelay(pdMS_TO_TICKS(100));
-	
+
 	volatile uint32_t res_mat_mul = benchmark_mat_mul(BENCH_MAT_SIZE);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	
+	volatile float res_mat_mul_float = benchmark_mat_mul_float(BENCH_MAT_SIZE_FLOAT);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	
+	volatile double res_mat_mul_double = benchmark_mat_mul_double(BENCH_MAT_SIZE_DOUBLE);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	
 	
 	// Verification
 	if(res_prime != CORRECT_PRIME 
-			|| res_mat_mul != CORRECT_MAT_MUL) {
+			|| res_mat_mul != CORRECT_MAT_MUL 
+			|| res_mat_mul_float < CORRECT_MAT_MUL_FLOAT_LOWER
+			|| res_mat_mul_float > CORRECT_MAT_MUL_FLOAT_UPPER
+			|| res_mat_mul_double < CORRECT_MAT_MUL_DOUBLE_LOWER 
+			|| res_mat_mul_double > CORRECT_MAT_MUL_DOUBLE_UPPER) {
+
+		configure_led();
 
 		// Activate and turn on LED 
-		blink_led();
-		while(1){} // Don't continue execution
+		while(1){
+			blink_led();
+			vTaskDelay(pdMS_TO_TICKS(1000));
+			blink_led();
+			vTaskDelay(pdMS_TO_TICKS(1000));
+		} // Don't continue execution
 	}
-}
-
-bool set_cpu_clock(CLK_SRC source, uint32_t divider) {
-  rtc_cpu_freq_config_t setup;
-
-  if (source == XTAL){
-	setup.source_freq_mhz = (uint32_t)rtc_clk_xtal_freq_get();
-	setup.source = SOC_CPU_CLK_SRC_XTAL;
-  }
-  else if (source == PLL_64M){
-	setup.source_freq_mhz = 64;
-	setup.source = SOC_CPU_CLK_SRC_FLASH_PLL;
-  }
-  else if (source == PLL_96M){
-	setup.source_freq_mhz = 96;
-	setup.source = SOC_CPU_CLK_SRC_PLL;
-  }
-  else if (source == RC){
-	setup.source_freq_mhz = 8;
-	setup.source = SOC_CPU_CLK_SRC_RC_FAST;
-  } else {
-	return 0;
-  }
-
-  if (divider < 1)
-	return 0;
-
-  setup.div = divider;
-  setup.freq_mhz = (setup.source_freq_mhz + divider/2) / divider;
-
-  rtc_clk_cpu_freq_set_config(&setup);
-
-  return 1;
 }
 
 void disable_uart(void) {
@@ -221,8 +243,6 @@ void app_main(void) {
 	while (true) {
 		
 		// max current 8mA
-		//set_cpu_clock(XTAL, 32);
-		//run_benchmarks();
 		set_cpu_clock(PLL_64M, 64);
 		run_benchmarks();
 		set_cpu_clock(PLL_96M, 96);
@@ -235,18 +255,5 @@ void app_main(void) {
 		run_benchmarks();
 		set_cpu_clock(PLL_96M, 1);
 		run_benchmarks();
-		//set_cpu_clock(RC, 8);
-		//run_benchmarks();
-		//set_cpu_clock(XTAL, 1);
-		
-		// Minimum freq
-		//set_cpu_clock(XTAL, 255);
-		//run_benchmarks();
-		//set_cpu_clock(PLL_64M, 255);
-		//run_benchmarks();
-		//set_cpu_clock(PLL_96M, 255);
-		//run_benchmarks();
-		//set_cpu_clock(RC, 255);
-		//run_benchmarks();
 	}
 }
