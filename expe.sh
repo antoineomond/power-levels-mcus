@@ -1,16 +1,27 @@
 set -e
 
 # parameters
-EXPE_NAME=stm32_15iters
-NB_CONFS=8
-NB_ITERS=15
+# EXPE_NAME=pico2_20iters
+# NB_CONFS=14
+# NB_ITERS=20
+# NB_BENCHMARKS=5
+# DEADLINE_ITERATION=3600
+# MAX_CURRENT_LOWER=0.004
+# MAX_CURRENT_UPPER=0.022
+# OFFSET=0
+# ITER_OFFSET=0
+# NUM_CONF_SWITCH=8 # At the END of this conf (i.e., last benchmark using this conf finished), switch calibration from lower to upper
+
+EXPE_NAME=esp32_matfloatdouble
+NB_CONFS=5
+NB_ITERS=20
 NB_BENCHMARKS=4
 DEADLINE_ITERATION=3600
-MAX_CURRENT_LOWER=0.006
-MAX_CURRENT_UPPER=0.012
+MAX_CURRENT_LOWER=0.008
+MAX_CURRENT_UPPER=0.022
 OFFSET=0
 ITER_OFFSET=0
-NUM_CONF_SWITCH=6 # At the END of this conf (i.e., last benchmark using this conf finished), switch calibration from lower to upper
+NUM_CONF_SWITCH=3 # At the END of this conf (i.e., last benchmark using this conf finished), switch calibration from lower to upper
 
 scp measurements.py raspberrypi:/root/dw_ina/measurements.py
 

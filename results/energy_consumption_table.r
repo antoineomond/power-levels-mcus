@@ -14,6 +14,8 @@ combined_df <- combined_df %>%
 		filter(clock_source != "LPOSC") %>%
 		filter(clock_source != "XOSC" | vreg_output %in% c("1.10V", "0.85V"))
 baseline_name <- "PLL | 1 | 10V | 150MHz"
+# baseline_name <- "HSI | scale3 | 16MHz"
+# baseline_name <- "PLL64.1 | 10V | 64MHz"
 baseline_mapfunc <- function(lvls) { return(gsub("(C|V|L|z|I|1|2|3)\\.", "\\1 | ", lvls)) }
 df_expe <- combined_df
 unit <- ifelse(df_expe$clock_freq < MHz, "kHz", "MHz")
@@ -21,7 +23,7 @@ div  <- ifelse(df_expe$clock_freq < MHz, kHz, MHz)
 df_expe <- df_expe %>%
 	mutate(
 		clock_source = factor(clock_source, levels = c("HSI", "HSE", "PLL", "XOSC", "ROSC", "PLL96", "PLL64", "RC_FAST")),
-		vreg_output = factor(vreg_output, levels = c("1.10V", "1.00V", "0.90V", "0.85V"))
+		vreg_output = factor(vreg_output, levels = c("1.10V", "1.00V", "0.90V", "0.85V", "scale3", "scale1"))
 	)
 #df_expe$gp <- interaction(df_expe$clock_source, paste(round(df_expe$pll_vco_freq/div, 1), "MHz", sep=""), paste(round(df_expe$clock_freq/div, 1), unit, sep=""))
 df_expe$gp <- interaction(df_expe$clock_source, df_expe$vreg_output, paste(round(df_expe$clock_freq/div, 1), unit, sep=""), lex.order = TRUE)
@@ -38,7 +40,10 @@ energy_consumption_table <- df_expe %>%
 	ungroup() %>%
 	group_by(expe_num) %>%
 	reframe(clock_source = clock_source, vreg_output = vreg_output, clock_freq = clock_freq, gp = baseline_mapfunc(gp), benchmark_name = benchmark_name, avg_energy = mean(energy_sample), std_energy = sd(energy_sample), avg_time = mean(current_timestamp), std_time = sd(current_timestamp), .groups = "drop") %>%
-	distinct()
+	distinct() %>%
+	arrange(desc(clock_source == "PLL" & vreg_output == "1.10V" & clock_freq %/% 1000000 == 150), gp)
+	# arrange(desc(clock_source == "HSI" & vreg_output == "scale3" & clock_freq %/% 1000000 == 16), gp)
+	# arrange(desc(clock_source == "PLL64" & vreg_output == "1.10V" & clock_freq %/% 1000000 == 64), gp)
 
 energy_consumption_table <- energy_consumption_table %>%
 	pivot_wider(
@@ -53,16 +58,17 @@ energy_consumption_table <- energy_consumption_table %>%
 		vreg_output = vreg_output,
 		clock_freq = paste(round(clock_freq / ifelse(clock_freq < MHz, kHz, MHz), 1), ifelse(clock_freq < MHz, "kHz", "MHz")),
 		gp = gp,
-		energy_prime_rel = round(energy_prime, 2), 
-		energy_prime_multicores_rel = round(energy_prime_multicores - energy_prime, 2), 
+		energy_prime_rel = round(energy_prime, 2),
+		energy_prime_multicores_rel = round(energy_prime_multicores - energy_prime, 2),
 		energy_mat_mul_rel = round(energy_mat_mul - energy_prime_multicores, 2),
 		energy_mat_mul_float_rel = round(energy_mat_mul_float - energy_mat_mul, 2),
-		energy_mat_mul_double_rel = round(energy_mat_mul_double - energy_mat_mul_float, 2), 
-		total_energy = energy_mat_mul_double
+		energy_mat_mul_double_rel = round(energy_mat_mul_double - energy_mat_mul_float, 2),
+		total_energy = round(energy_mat_mul_double, 2)
+		# total_energy = energy_mat_mul_double
 	)
 energy_consumption_table <- energy_consumption_table %>%
 	mutate(
-		gain_baseline = ((total_energy - energy_consumption_table[energy_consumption_table$gp == baseline_name, ]$total_energy) / energy_consumption_table[energy_consumption_table$gp == baseline_name, ]$total_energy) * 100
+		gain_baseline = round(((total_energy - energy_consumption_table[energy_consumption_table$gp == baseline_name, ]$total_energy) / energy_consumption_table[energy_consumption_table$gp == baseline_name, ]$total_energy) * 100, 2)
 	)
 
 energy_consumption_table <- energy_consumption_table %>%
@@ -70,12 +76,12 @@ energy_consumption_table <- energy_consumption_table %>%
 		"Clock" = clock_source,
 		"VREG" = vreg_output,
 		"Freq" = clock_freq,
-		"Prime (J)" = energy_prime_rel,
-		"Prime multicores (J)" = energy_prime_multicores_rel,
-		"Mat mul int (J)" = energy_mat_mul_rel,
-		"Mat mul float (J)" = energy_mat_mul_float_rel,
-		"Mat mul double (J)" = energy_mat_mul_double_rel,
-		"Total energy (J)" = total_energy,
+		"Prime (mJ)" = energy_prime_rel,
+		"Prime multicores (mJ)" = energy_prime_multicores_rel,
+		"Mat mul int (mJ)" = energy_mat_mul_rel,
+		"Mat mul float (mJ)" = energy_mat_mul_float_rel,
+		"Mat mul double (mJ)" = energy_mat_mul_double_rel,
+		"Total energy (mJ)" = total_energy,
 		"% baseline (%)" = gain_baseline
 	)
 
@@ -103,7 +109,7 @@ fill_matrix[, which(names(energy_consumption_table) == "% baseline (%)")-2] <-  
 tt <- ttheme_default(core = list(bg_params = list(fill = fill_matrix)))
 	
 energy_consumption_table <- energy_consumption_table %>% select(-row_num, -gp)
-pdf(paste(folder, "energy_table.pdf", sep=""), height = 3.2, width = 12.3)
+pdf(paste(folder, "energy_table.pdf", sep=""), height = 3.2, width = 13.3)
 grid.table(energy_consumption_table, rows = NULL, theme = tt)
 
 #p2 <- p2 + guides(color = "none", fill = "none", linetype = "none")

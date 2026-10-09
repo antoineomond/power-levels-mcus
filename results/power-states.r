@@ -10,7 +10,8 @@ library(grid)
 library(gridExtra)
 library(RColorBrewer)
 library(cowplot)
-options(dplyr.print_max = 1e9, pillar.width = Inf)
+library(viridis)
+#options(dplyr.print_max = 1e9, pillar.width = Inf)
 
 MHz <- 1000000
 kHz <- 1000
@@ -63,10 +64,12 @@ get_plot <- function(df_expe) {
 		ungroup()
 	df_expe <- df_expe %>%
 		mutate(
-			clock_source = factor(clock_source, levels = c("HSI", "HSE", "PLL", "XOSC", "ROSC", "PLL96", "PLL64", "RC_FAST")),
-			vreg_output = factor(vreg_output, levels = c("1.10V", "1.00V", "0.90V", "0.85V", "1.26-1.38V", "1.20-1.32V", "1.08-1.20V"))
+			clock_source = factor(clock_source, levels = c("HSI", "HSE", "PLL", "XOSC", "ROSC", "LPOSC", "PLL96", "PLL64", "RC_FAST", "XTAL")),
+			vreg_output = factor(vreg_output, levels = c("1.10V", "1.00V", "0.90V","0.85V", "0.80V", "scale1", "scale2", "scale3"))
 		)
-	myColors <- c("prime" = "black", "prime_multicores" = "grey", "mat_mul" = "cyan", "mat_mul_float" = "blue", "mat_mul_double" = "dark blue", "PLL96" = "blue", "HSI" = "blue", "RC_FAST" = "purple", "HSE" = "purple")
+	bench <- c("prime", "prime_multicores", "mat_mul", "mat_mul_float", "mat_mul_double")
+	myColors <- setNames(viridisLite::viridis(length(bench), end = 0.9), bench)
+	# myColors <- setNames(c("#000000", "#E69F00", "#0072B2", "#009E73", "#D55E00"), bench)
 	p <- ggplot(df_expe , aes(x = current_timestamp, y = power_sample, color=benchmark_name, group=interaction(clock_source, vreg_output, clock_freq, benchmark_name))) +
 		geom_line(na.rm = TRUE) +
 		geom_hline(data=pwr, aes(yintercept = power_median, color = benchmark_name), linetype = "dashed", linewidth = 0.3, alpha = 0.5, show.legend = FALSE) +
@@ -83,10 +86,11 @@ get_plot <- function(df_expe) {
 		scale_y_continuous(n.breaks=5) +
 		facet_wrap(~interaction(clock_source, vreg_output, clock_freq, sep="|", lex.order = TRUE), ncol = 1, scales = "free", labeller = as_labeller(selective_labeller)) +
 		labs(x = "Timestamp in seconds", y = "Power usage in mW", title = "") +
-		scale_colour_manual(name = "Benchmark name:", values = myColors, breaks=names(myColors)) +
+		scale_colour_manual(name = "Benchmark name:", values = myColors, breaks=names(myColors), labels = function(x) gsub("_", " ", x)) +
 		guides(color = guide_legend(nrow = 1, byrow = TRUE, title.position = "left", title.hjust = 0.5)) +
+		theme_bw() +
 		theme(
-			legend.position = "top",
+			legend.position = "none",
 			strip.text = ggtext::element_markdown(size=10),
 			plot.title = element_text(hjust = 0.5),
 			plot.subtitle = element_text(hjust = 0.5),
