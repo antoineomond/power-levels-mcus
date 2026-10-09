@@ -65,13 +65,13 @@ get_plot <- function(df_expe) {
 	df_expe <- df_expe %>%
 		mutate(
 			clock_source = factor(clock_source, levels = c("HSI", "HSE", "PLL", "XOSC", "ROSC", "LPOSC", "PLL96", "PLL64", "RC_FAST", "XTAL")),
-			vreg_output = factor(vreg_output, levels = c("1.10V", "1.00V", "0.90V","0.85V", "0.80V", "scale1", "scale2", "scale3"))
+			vreg_output = factor(vreg_output, levels = c("1.10V", "1.00V", "0.90V","0.85V", "0.80V", "Range1", "Range2", "Range3"))
 		)
 	bench <- c("prime", "prime_multicores", "mat_mul", "mat_mul_float", "mat_mul_double")
 	myColors <- setNames(viridisLite::viridis(length(bench), end = 0.9), bench)
 	# myColors <- setNames(c("#000000", "#E69F00", "#0072B2", "#009E73", "#D55E00"), bench)
 	p <- ggplot(df_expe , aes(x = current_timestamp, y = power_sample, color=benchmark_name, group=interaction(clock_source, vreg_output, clock_freq, benchmark_name))) +
-		geom_line(na.rm = TRUE) +
+		geom_line(na.rm = TRUE, key_glyph = "rect") +
 		geom_hline(data=pwr, aes(yintercept = power_median, color = benchmark_name), linetype = "dashed", linewidth = 0.3, alpha = 0.5, show.legend = FALSE) +
 		geom_label_repel(
 			data=pwr,
