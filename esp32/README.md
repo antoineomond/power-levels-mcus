@@ -1,6 +1,3 @@
-# ESP32H2 power levels
-Code to reach different power levels of the ESP32H2 by modifying clock source, clock frequency and VREG output
-
 # Setup
 Install the development framework
 - `git clone --single-branch --recursive https://github.com/espressif/esp-idf.git`
