@@ -1,0 +1,19 @@
+   0:	67c1                	lui	a5,0x10
+   2:	02f57663          	bgeu	a0,a5,2e <.L2>	2: R_RISCV_BRANCH	.L2
+   6:	10053793          	sltiu	a5,a0,256
+   a:	0017b793          	seqz	a5,a5
+   e:	078e                	slli	a5,a5,0x3
+  10:	00000737          	lui	a4,0x0	10: R_RISCV_HI20	__clz_tab
+  14:	00f55533          	srl	a0,a0,a5
+  18:	00070713          	mv	a4,a4	18: R_RISCV_LO12_I	__clz_tab
+  1c:	972a                	add	a4,a4,a0
+  1e:	00074503          	lbu	a0,0(a4)
+  22:	02000693          	li	a3,32
+  26:	8e9d                	sub	a3,a3,a5
+  28:	40a68533          	sub	a0,a3,a0
+  2c:	8082                	ret
+  2e:	01000737          	lui	a4,0x1000
+  32:	47e1                	li	a5,24
+  34:	fce57ee3          	bgeu	a0,a4,10 <.L3>	34: R_RISCV_BRANCH	.L3
+  38:	47c1                	li	a5,16
+  3a:	bfd9                	j	10 <.L3>	3a: R_RISCV_RVC_JUMP	.L3
