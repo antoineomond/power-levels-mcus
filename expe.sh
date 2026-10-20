@@ -1,7 +1,7 @@
 set -e
 
 # parameters
-EXPE_NAME=esp32_mat_mul_analysis_3
+EXPE_NAME=esp32_mat_mul_analysis_iram
 NB_CONFS=1
 NB_ITERS=3
 NB_BENCHMARKS=2

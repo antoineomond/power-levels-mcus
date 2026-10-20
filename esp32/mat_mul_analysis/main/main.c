@@ -9,6 +9,7 @@
 #include "freertos/FreeRTOS.h"
 #include "driver/uart.h"
 #include "esp_pm.h"
+#include "esp_attr.h"
 
 // Benchmark sizes
 #define BENCH_PRIME_SIZE 2000
@@ -68,7 +69,7 @@ uint32_t benchmark_prime(uint32_t benchmark_size) {
 	return cpt;
 }
 
-uint32_t benchmark_mat_mul(uint32_t size) {
+IRAM_ATTR uint32_t benchmark_mat_mul(uint32_t size) {
 	volatile uint32_t checksum = 0;
 	srand(SEED);
 	// Three 32-bits matrixes of 72 elements account for 486 kB, which should account for all 8 memory banks in SRAM0 and SRAM1
