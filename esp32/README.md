@@ -7,7 +7,7 @@ Install the development framework
 Enable the environment
 - `. ./export.sh`
 
-From the esp32 directory:
+From a project directory (`benchmarks/` or `mat_mul_analysis/`):
 - `idf.py set-target esp32h2` (precise the board model)
 - `idf.py build` (build the firmware)
 
