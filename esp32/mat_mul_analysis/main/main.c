@@ -187,9 +187,9 @@ double benchmark_mat_mul_double(uint32_t size) {
 extern uint32_t benchmark_mat_mul_asm(uint32_t size);
 
 void run_benchmarks() {
-	volatile uint32_t res_mat_mul = benchmark_mat_mul(BENCH_MAT_SIZE);
-	vTaskDelay(pdMS_TO_TICKS(100));
 	volatile uint32_t res_mat_mul_asm = benchmark_mat_mul_asm(BENCH_MAT_SIZE);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile uint32_t res_mat_mul = benchmark_mat_mul(BENCH_MAT_SIZE);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	
 	// Verification

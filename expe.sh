@@ -1,9 +1,9 @@
 set -e
 
 # parameters
-EXPE_NAME=esp32_mat_mul_analysis
+EXPE_NAME=esp32_mat_mul_analysis_3
 NB_CONFS=1
-NB_ITERS=5
+NB_ITERS=3
 NB_BENCHMARKS=2
 DEADLINE_ITERATION=3600
 MAX_CURRENT_LOWER=0.022
