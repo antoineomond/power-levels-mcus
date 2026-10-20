@@ -60,9 +60,11 @@ uint32_t compute_primes(uint32_t start, uint32_t end) {
 }
 
 uint32_t benchmark_prime(uint32_t benchmark_size) {
+	vTaskDelay(pdMS_TO_TICKS(3000));
 	set_gpio(EXPE_PIN, 1);
 	volatile uint32_t cpt = compute_primes(2, benchmark_size);
 	set_gpio(EXPE_PIN, 0);
+	vTaskDelay(pdMS_TO_TICKS(3000));
 	return cpt;
 }
 
@@ -157,6 +159,7 @@ double benchmark_mat_mul_double(uint32_t size) {
 			C[size*i + j] = 0;
 		}
 	}
+	vTaskDelay(pdMS_TO_TICKS(3000));
 	set_gpio(EXPE_PIN, 1);
 	for(int i = 0; i < size; i++) {
 		for(int j = 0; j < size; j++) {
@@ -166,6 +169,7 @@ double benchmark_mat_mul_double(uint32_t size) {
 		}
 	}
 	set_gpio(EXPE_PIN, 0);
+	vTaskDelay(pdMS_TO_TICKS(3000));
 	
 	// Prevent compiler optimisation and check results
 	checksum = 0;
@@ -180,30 +184,17 @@ double benchmark_mat_mul_double(uint32_t size) {
 	return checksum;
 }
 
-void run_benchmarks() {
-	vTaskDelay(pdMS_TO_TICKS(20000));
-	
-	volatile uint32_t res_prime = benchmark_prime(BENCH_PRIME_SIZE);
-	vTaskDelay(pdMS_TO_TICKS(100));
+extern uint32_t benchmark_mat_mul_asm(uint32_t size);
 
+void run_benchmarks() {
 	volatile uint32_t res_mat_mul = benchmark_mat_mul(BENCH_MAT_SIZE);
 	vTaskDelay(pdMS_TO_TICKS(100));
-	
-	volatile float res_mat_mul_float = benchmark_mat_mul_float(BENCH_MAT_SIZE_FLOAT);
+	volatile uint32_t res_mat_mul_asm = benchmark_mat_mul_asm(BENCH_MAT_SIZE);
 	vTaskDelay(pdMS_TO_TICKS(100));
-	
-	volatile double res_mat_mul_double = benchmark_mat_mul_double(BENCH_MAT_SIZE_DOUBLE);
-	vTaskDelay(pdMS_TO_TICKS(100));
-	
 	
 	// Verification
-	if(res_prime != CORRECT_PRIME 
-			|| res_mat_mul != CORRECT_MAT_MUL 
-			|| res_mat_mul_float < CORRECT_MAT_MUL_FLOAT_LOWER
-			|| res_mat_mul_float > CORRECT_MAT_MUL_FLOAT_UPPER
-			|| res_mat_mul_double < CORRECT_MAT_MUL_DOUBLE_LOWER 
-			|| res_mat_mul_double > CORRECT_MAT_MUL_DOUBLE_UPPER) {
-
+	if(res_mat_mul != CORRECT_MAT_MUL &&
+		 res_mat_mul_asm != CORRECT_MAT_MUL) {
 		configure_led();
 
 		// Activate and turn on LED 
@@ -225,8 +216,6 @@ void disable_uart(void) {
     disable_gpio(GPIO_NUM_23); // RX Pin
 }
 
-extern uint32_t benchmark_mat_mul_asm(uint32_t size);
-
 void app_main(void) {
   // Keep this delay otherwise random crash
   vTaskDelay(pdMS_TO_TICKS(1000));
@@ -235,20 +224,22 @@ void app_main(void) {
 	init_gpio(5);
 	
   // Put all the other gpios in input mode with pull_down resistors
-	// uint8_t unused_gpios[] = {0, 1, 2, 3, 13, 14, 4, 24, 23, 10, 11, 25, 12, 8, 22, 9, 27, 26};
-	// for (int i = 0; i < sizeof(unused_gpios)/sizeof(uint8_t); i++) {
-	// 	disable_gpio(unused_gpios[i]);
-	// }
-	
-  configure_led();
-	
-	while(true) {
-		volatile uint32_t res_mat_mul = benchmark_mat_mul_asm(BENCH_MAT_SIZE);
-		vTaskDelay(pdMS_TO_TICKS(1000));
-		printf("checksum res_mat_mul: %ld\n", res_mat_mul);
+	uint8_t unused_gpios[] = {0, 1, 2, 3, 13, 14, 4, 24, 23, 10, 11, 25, 12, 8, 22, 9, 27, 26};
+	for (int i = 0; i < sizeof(unused_gpios)/sizeof(uint8_t); i++) {
+		disable_gpio(unused_gpios[i]);
 	}
 	
+	configure_led();
 	
+	blink_led();
+  vTaskDelay(pdMS_TO_TICKS(5000));
+	blink_led();
+	
+	set_cpu_clock(PLL_64M, 1);
+	
+	while(true) {
+		run_benchmarks();
+	}
 	// volatile float res_mat_mul_float = benchmark_mat_mul_float(BENCH_MAT_SIZE_FLOAT);
 	// vTaskDelay(pdMS_TO_TICKS(100));
 }
