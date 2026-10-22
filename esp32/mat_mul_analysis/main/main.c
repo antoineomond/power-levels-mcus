@@ -13,7 +13,7 @@
 
 // Benchmark sizes
 #define BENCH_PRIME_SIZE 2000
-#define BENCH_MAT_SIZE 70
+#define BENCH_MAT_SIZE 140
 #define BENCH_MAT_SIZE_FLOAT 70
 #define BENCH_MAT_SIZE_DOUBLE 50
 
@@ -72,6 +72,7 @@ IRAM_ATTR uint32_t benchmark_prime(uint32_t benchmark_size) {
 extern uint32_t benchmark_mat_mul_asm(uint32_t size);
 extern uint32_t benchmark_mat_mul_asm_nomem(uint32_t size);
 extern uint32_t benchmark_mat_mul_asm_noalloc(uint32_t size);
+extern uint32_t benchmark_mat_mul_asm_nomul(uint32_t size);
 
 IRAM_ATTR uint32_t benchmark_mat_mul(uint32_t size) {
 	volatile uint32_t checksum = 0;
@@ -199,6 +200,8 @@ void run_benchmarks() {
 	volatile uint32_t res_mat_mul_asm_nomem = benchmark_mat_mul_asm_nomem(BENCH_MAT_SIZE);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	volatile uint32_t res_mat_mul_asm_noalloc = benchmark_mat_mul_asm_noalloc(BENCH_MAT_SIZE);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile uint32_t res_mat_mul_asm_nomul = benchmark_mat_mul_asm_nomul(BENCH_MAT_SIZE);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	
 	// Verification
