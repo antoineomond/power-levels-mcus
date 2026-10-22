@@ -94,7 +94,7 @@ benchmark_mat_mul_asm_noalloc:
 	# lw	a5,0(a5)		# B[size*k + j]
 	mul	a5,a1,a5
 	add	a5,a5,a2
-	sw	a5,0(a4)
+	# sw	a5,0(a4)
 	addi	a3,a3,1			# k++
 .Lmul_k_cond:
 	bltu	a3,s0,.Lmul_k_body
