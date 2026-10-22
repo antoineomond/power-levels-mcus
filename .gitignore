@@ -4,6 +4,8 @@ Release/
 results/*
 !results/pico2/
 !results/esp32/
+!results/esp32_mat_mul_analysis_iram/
+!results/esp32_mat_mul_analysis_iram_asmaligned/
 !results/stm32/
 *.pdf
 *.png

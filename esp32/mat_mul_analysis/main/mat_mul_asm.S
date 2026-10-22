@@ -4,6 +4,7 @@
 
 # uint32_t benchmark_mat_mul_asm(uint32_t size)
 #   s0 = size, s1 = C, s2 = B, s3 = A, 12(sp) = volatile checksum
+.balign 4
 benchmark_mat_mul_asm:
 	addi	sp,sp,-64
 	sw	ra,60(sp)

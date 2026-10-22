@@ -246,6 +246,4 @@ void app_main(void) {
 	while(true) {
 		run_benchmarks();
 	}
-	// volatile float res_mat_mul_float = benchmark_mat_mul_float(BENCH_MAT_SIZE_FLOAT);
-	// vTaskDelay(pdMS_TO_TICKS(100));
 }
