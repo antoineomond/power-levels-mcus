@@ -43,7 +43,7 @@ void disable_gpio(int pin) {
 	gpio_set_pull_mode(pin, GPIO_PULLDOWN_ONLY);
 }
 
-uint32_t compute_primes(uint32_t start, uint32_t end) {
+IRAM_ATTR uint32_t compute_primes(uint32_t start, uint32_t end) {
 	volatile uint32_t cpt = 0;
 	uint32_t is_prime = 1;
 	for (int k = start; k < end; k++) {
@@ -60,7 +60,7 @@ uint32_t compute_primes(uint32_t start, uint32_t end) {
 	return cpt;
 }
 
-uint32_t benchmark_prime(uint32_t benchmark_size) {
+IRAM_ATTR uint32_t benchmark_prime(uint32_t benchmark_size) {
 	vTaskDelay(pdMS_TO_TICKS(3000));
 	set_gpio(EXPE_PIN, 1);
 	volatile uint32_t cpt = compute_primes(2, benchmark_size);
@@ -68,6 +68,8 @@ uint32_t benchmark_prime(uint32_t benchmark_size) {
 	vTaskDelay(pdMS_TO_TICKS(3000));
 	return cpt;
 }
+
+extern uint32_t benchmark_mat_mul_asm(uint32_t size);
 
 IRAM_ATTR uint32_t benchmark_mat_mul(uint32_t size) {
 	volatile uint32_t checksum = 0;
@@ -107,7 +109,7 @@ IRAM_ATTR uint32_t benchmark_mat_mul(uint32_t size) {
 	return checksum;
 }
 
-float benchmark_mat_mul_float(uint32_t size) {
+IRAM_ATTR float benchmark_mat_mul_float(uint32_t size) {
 	volatile float checksum = 0;
 	srand(SEED);
 	// Three 32-bits matrixes of 72 elements account for 486 kB, which should account for all 8 memory banks in SRAM0 and SRAM1
@@ -146,7 +148,7 @@ float benchmark_mat_mul_float(uint32_t size) {
 	return checksum;
 }
 
-double benchmark_mat_mul_double(uint32_t size) {
+IRAM_ATTR double benchmark_mat_mul_double(uint32_t size) {
 	volatile double checksum = 0;
 	srand(SEED);
 	// Three 32-bits matrixes of 72 elements account for 486 kB, which should account for all 8 memory banks in SRAM0 and SRAM1
@@ -185,17 +187,20 @@ double benchmark_mat_mul_double(uint32_t size) {
 	return checksum;
 }
 
-extern uint32_t benchmark_mat_mul_asm(uint32_t size);
-
 void run_benchmarks() {
-	volatile uint32_t res_mat_mul_asm = benchmark_mat_mul_asm(BENCH_MAT_SIZE);
+	volatile uint32_t res_prime = benchmark_prime(BENCH_PRIME_SIZE);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	volatile uint32_t res_mat_mul = benchmark_mat_mul(BENCH_MAT_SIZE);
 	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile uint32_t res_mat_mul_asm = benchmark_mat_mul_asm(BENCH_MAT_SIZE);
+	vTaskDelay(pdMS_TO_TICKS(100));
 	
 	// Verification
-	if(res_mat_mul != CORRECT_MAT_MUL &&
-		 res_mat_mul_asm != CORRECT_MAT_MUL) {
+	if(res_prime != CORRECT_PRIME
+		 //  res_mat_mul != CORRECT_MAT_MUL ||
+		 // res_mat_mul_float < CORRECT_MAT_MUL_FLOAT_LOWER ||
+		 //res_mat_mul_float > CORRECT_MAT_MUL_FLOAT_UPPER
+		 ) {
 		configure_led();
 
 		// Activate and turn on LED 

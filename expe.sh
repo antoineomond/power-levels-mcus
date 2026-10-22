@@ -1,10 +1,10 @@
 set -e
 
 # parameters
-EXPE_NAME=esp32_mat_mul_analysis_iram
+EXPE_NAME=esp32_mat_mul_analysis_wo_mem_wo_init_wo_malloc_2_benchs
 NB_CONFS=1
 NB_ITERS=3
-NB_BENCHMARKS=2
+NB_BENCHMARKS=4
 DEADLINE_ITERATION=3600
 MAX_CURRENT_LOWER=0.022
 MAX_CURRENT_UPPER=0.022
