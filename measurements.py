@@ -46,7 +46,7 @@ def next_expe(user_gpio, level, tick):
     if(level == 1):
         if(init == 0):
             start_time = time.time() 
-            ina228.reset_accumulators()
+        ina228.reset_accumulators()
         init = 1
         started = 1
         s = tick
