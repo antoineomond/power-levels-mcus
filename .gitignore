@@ -11,3 +11,4 @@ results/*
 *.png
 managed_components/
 compile_commands.json
+expe.sh
