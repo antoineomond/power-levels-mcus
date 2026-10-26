@@ -6,6 +6,7 @@ idf_component_register(SRCS
 "mat_mul_asm_noalloc.S"
 "mat_mul_asm_nomul.S"
 "mat_mul_asm_mod.S"
+"mat_mul_float_asm.S"
 REQUIRES driver esp_driver_gpio
 REQUIRES driver esp_driver_uart
 REQUIRES led_strip
