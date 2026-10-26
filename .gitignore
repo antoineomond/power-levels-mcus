@@ -9,6 +9,7 @@ results/*
 !results/esp32_mat_mul_analysis_iram_all/
 !results/esp32_mat_mul_analysis_iram_mod/
 !results/esp32_mat_mul_analysis_iram_only_nomul/
+!results/esp32_mat_mul_analysis_iram_float_nosf/
 !results/stm32/
 *.pdf
 *.png

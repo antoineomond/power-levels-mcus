@@ -13,7 +13,7 @@
 
 // Benchmark sizes
 #define BENCH_PRIME_SIZE 2000
-#define BENCH_MAT_SIZE 140
+#define BENCH_MAT_SIZE 70
 #define BENCH_MAT_SIZE_FLOAT 70
 #define BENCH_MAT_SIZE_DOUBLE 50
 
@@ -74,6 +74,7 @@ extern uint32_t benchmark_mat_mul_asm_noalloc(uint32_t size);
 extern uint32_t benchmark_mat_mul_asm_nomul(uint32_t size);
 extern uint32_t benchmark_mat_mul_asm_mod(uint32_t size);
 extern float benchmark_mat_mul_float_asm(uint32_t size);
+extern float benchmark_mat_mul_float_asm_nosf(uint32_t size);
 
 IRAM_ATTR uint32_t benchmark_mat_mul(uint32_t size) {
 	volatile uint32_t checksum = 0;
@@ -189,10 +190,10 @@ IRAM_ATTR double benchmark_mat_mul_double(uint32_t size) {
 }
 
 void run_benchmarks() {
-	// volatile uint32_t res_prime = benchmark_prime(BENCH_PRIME_SIZE);
-	// vTaskDelay(pdMS_TO_TICKS(100));
-	// volatile uint32_t res_mat_mul = benchmark_mat_mul(BENCH_MAT_SIZE);
-	// vTaskDelay(pdMS_TO_TICKS(100));
+	volatile uint32_t res_prime = benchmark_prime(BENCH_PRIME_SIZE);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile uint32_t res_mat_mul = benchmark_mat_mul(BENCH_MAT_SIZE);
+	vTaskDelay(pdMS_TO_TICKS(100));
 	// volatile uint32_t res_mat_mul_asm = benchmark_mat_mul_asm(BENCH_MAT_SIZE);
 	// vTaskDelay(pdMS_TO_TICKS(100));
 	// volatile uint32_t res_mat_mul_asm_nomem = benchmark_mat_mul_asm_nomem(BENCH_MAT_SIZE);
@@ -207,13 +208,15 @@ void run_benchmarks() {
 	vTaskDelay(pdMS_TO_TICKS(100));
 	volatile float res_mat_mul_float_asm = benchmark_mat_mul_float_asm(BENCH_MAT_SIZE_FLOAT);
 	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile float res_mat_mul_float_asm_nosf = benchmark_mat_mul_float_asm_nosf(BENCH_MAT_SIZE_FLOAT);
+	vTaskDelay(pdMS_TO_TICKS(100));
 	// volatile uint32_t res_mat_mul_double = benchmark_mat_mul_double(BENCH_MAT_SIZE_DOUBLE);
 	// vTaskDelay(pdMS_TO_TICKS(100));
 	
 	// Verification
 	if(
-		 // res_prime != CORRECT_PRIME ||
-		 //  res_mat_mul != CORRECT_MAT_MUL ||
+		 res_prime != CORRECT_PRIME ||
+		 res_mat_mul != CORRECT_MAT_MUL ||
 		 res_mat_mul_float < CORRECT_MAT_MUL_FLOAT_LOWER ||
 		 res_mat_mul_float > CORRECT_MAT_MUL_FLOAT_UPPER ||
 		 res_mat_mul_float_asm < CORRECT_MAT_MUL_FLOAT_LOWER ||
@@ -248,10 +251,10 @@ void app_main(void) {
 	init_gpio(5);
 	
   // Put all the other gpios in input mode with pull_down resistors
-	// uint8_t unused_gpios[] = {0, 1, 2, 3, 13, 14, 4, 24, 23, 10, 11, 25, 12, 8, 22, 9, 27, 26};
-	// for (int i = 0; i < sizeof(unused_gpios)/sizeof(uint8_t); i++) {
-	// 	disable_gpio(unused_gpios[i]);
-	// }
+	uint8_t unused_gpios[] = {0, 1, 2, 3, 13, 14, 4, 24, 23, 10, 11, 25, 12, 8, 22, 9, 27, 26};
+	for (int i = 0; i < sizeof(unused_gpios)/sizeof(uint8_t); i++) {
+		disable_gpio(unused_gpios[i]);
+	}
 	
 	configure_led();
 	
