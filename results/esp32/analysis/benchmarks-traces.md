@@ -19,21 +19,17 @@
 4. Each function has two call to `<set_gpio>`. The instructions executed during benchmarks are instructions between the `<set_gpio>` calls.
 
 ## Software floating point library
-The ESP32-H2-MINI-1-N4 doesn't have an FPU. Floating point operations must be emulated in hardware. GCC provides a [low-level runtime library](https://gcc.gnu.org/onlinedocs/gccint/Libgcc.html), `libgcc.a`, and generates call to the routines from this library automatically when compiling programs. `libgcc.a` provides the software floating point library (soft-float), allowing to emulate [arithmetic, conversion, and comparison operations](https://gcc.gnu.org/onlinedocs/gccint/Soft-float-library-routines.html) using floating points.
+The ESP32-H2-MINI-1-N4 doesn't have an FPU. Floating point operations must be emulated in hardware. Floating point can be emulated using the software floating point library. GCC provides a [low-level runtime library](https://gcc.gnu.org/onlinedocs/gccint/Libgcc.html), `libgcc.a`, and generates call to the routines from this library automatically when compiling programs. `libgcc.a` provides the software floating point library (soft-float), allowing to emulate [arithmetic, conversion, and comparison operations](https://gcc.gnu.org/onlinedocs/gccint/Soft-float-library-routines.html) using floating points. However, the ESP32-H2-MINI-1-N4 doesn't use this library, but has these functions integrated directly in ROM.
 
 In the `<benchmark_mat_mul_float>` function, benchmark instructions (between `<set_gpio>` calls) includes two calls to the soft-float library: `<__mulsf3>` and `<__addsf3>`. The former is use to compute the product of two matrix cells of the input matrix. The latter is used to add the result to a cell of the output matrix. 
 
+Running `riscv32-esp-elf-nm build/mat_mul_analysis.elf | grep -w __mulsf` gives `40000940 A __mulsf3`. The `0x40000940` address belongs to the ROM section of the memory (cf **Memory Address Mapping** table of the datasheet).
+
 ## Disassembly of libgcc.a
-The `libgcc.a` library should be located where the ESP32 cross-compiler is installed `~/.espressif/tools/riscv32-esp-elf/esp-<version>_<date>/riscv32-esp-elf/lib/gcc/riscv32-esp-elf/16.1.0/libgcc.a`.
+The ROM ELF files should be installed alongside esp-idf. For the ESP32H2, there is a single elf file: `~/.espressif/tools/esp-rom-elfs/20260528/esp32h2_rev0_rom.elf`. 
 
-Disassemble the object file
+Disassemble the file:
 
-    `riscv32-esp-elf-objdump -drwC ~/.espressif/tools/riscv32-esp-elf/esp-<version>_<date>/riscv32-esp-elf/lib/gcc/riscv32-esp-elf/16.1.0/libgcc.a > libgcc.a.dis`
+    `riscv32-esp-elf-objdump -d ~/.espressif/tools/esp-rom-elfs/<date>/esp32h2_rev0_rom.elf > rom_dump.dis`
 
 Locate the `<__mulsf3>` and `<__addsf3>` functions.
-
-The `results/esp32/analysis/disassemblies/__mulsf3.dis` file contains the compact list of instructions contained in `<__mulsf3>`. There are 309 instructions in total, with 9 stores and 9 loads. This includes two calls to `<__clzsi2>` (also in `<libgcc.a.dis>`).
-
-The `results/esp32/analysis/disassemblies/__clzsi2.dis` file contains the compact list of instructions contained in `<__clzsi2>`. There are 19 instructions in total in this file, including 1 load.
-
-In total, there are 309+19*2 = 347 instructions in the `<__mulsf3.dis>` file, including 20 memory operations. This means that around 5.8% of instructions are operations requiring access to the memory. 

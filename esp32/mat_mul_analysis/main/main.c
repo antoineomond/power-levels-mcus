@@ -65,7 +65,6 @@ IRAM_ATTR uint32_t benchmark_prime(uint32_t benchmark_size) {
 	set_gpio(EXPE_PIN, 1);
 	volatile uint32_t cpt = compute_primes(2, benchmark_size);
 	set_gpio(EXPE_PIN, 0);
-	vTaskDelay(pdMS_TO_TICKS(3000));
 	return cpt;
 }
 
@@ -99,7 +98,6 @@ IRAM_ATTR uint32_t benchmark_mat_mul(uint32_t size) {
 		}
 	}
 	set_gpio(EXPE_PIN, 0);
-	vTaskDelay(pdMS_TO_TICKS(3000));
 	// Prevent compiler optimisation and check results
 	checksum = 0;
 	for(int i = 0; i < size; i++) {
@@ -137,7 +135,6 @@ IRAM_ATTR float benchmark_mat_mul_float(uint32_t size) {
 		}
 	}
 	set_gpio(EXPE_PIN, 0);
-	vTaskDelay(pdMS_TO_TICKS(3000));
 	
 	// Prevent compiler optimisation and check results
 	checksum = 0;
@@ -176,7 +173,6 @@ IRAM_ATTR double benchmark_mat_mul_double(uint32_t size) {
 		}
 	}
 	set_gpio(EXPE_PIN, 0);
-	vTaskDelay(pdMS_TO_TICKS(3000));
 	
 	// Prevent compiler optimisation and check results
 	checksum = 0;
@@ -192,8 +188,8 @@ IRAM_ATTR double benchmark_mat_mul_double(uint32_t size) {
 }
 
 void run_benchmarks() {
-	// volatile uint32_t res_prime = benchmark_prime(BENCH_PRIME_SIZE);
-	// vTaskDelay(pdMS_TO_TICKS(100));
+	volatile uint32_t res_prime = benchmark_prime(BENCH_PRIME_SIZE);
+	vTaskDelay(pdMS_TO_TICKS(100));
 	// volatile uint32_t res_mat_mul = benchmark_mat_mul(BENCH_MAT_SIZE);
 	// vTaskDelay(pdMS_TO_TICKS(100));
 	// volatile uint32_t res_mat_mul_asm = benchmark_mat_mul_asm(BENCH_MAT_SIZE);
@@ -204,7 +200,11 @@ void run_benchmarks() {
 	// vTaskDelay(pdMS_TO_TICKS(100));
 	// volatile uint32_t res_mat_mul_asm_nomul = benchmark_mat_mul_asm_nomul(BENCH_MAT_SIZE);
 	// vTaskDelay(pdMS_TO_TICKS(100));
-	volatile uint32_t res_mat_mul_asm_nomul = benchmark_mat_mul_asm_mod(BENCH_MAT_SIZE);
+	// volatile uint32_t res_mat_mul_asm_nomul = benchmark_mat_mul_asm_mod(BENCH_MAT_SIZE);
+	// vTaskDelay(pdMS_TO_TICKS(100));
+	volatile uint32_t res_mat_mul_float = benchmark_mat_mul_float(BENCH_MAT_SIZE);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile uint32_t res_mat_mul_double = benchmark_mat_mul_double(BENCH_MAT_SIZE_DOUBLE);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	
 	// Verification
