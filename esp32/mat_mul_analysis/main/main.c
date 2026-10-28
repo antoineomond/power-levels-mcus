@@ -75,6 +75,10 @@ extern uint32_t benchmark_mat_mul_asm_nomul(uint32_t size);
 extern uint32_t benchmark_mat_mul_asm_mod(uint32_t size);
 extern float benchmark_mat_mul_float_asm(uint32_t size);
 extern float benchmark_mat_mul_float_asm_nosf(uint32_t size);
+extern float benchmark_mat_mul_asm_nop(uint32_t size);
+extern float benchmark_mat_mul_float_asm_nop(uint32_t size);
+extern float benchmark_mat_mul_asm_mem(uint32_t size);
+extern float benchmark_mat_mul_float_asm_mem(uint32_t size);
 
 IRAM_ATTR uint32_t benchmark_mat_mul(uint32_t size) {
 	volatile uint32_t checksum = 0;
@@ -209,6 +213,14 @@ void run_benchmarks() {
 	volatile float res_mat_mul_float_asm = benchmark_mat_mul_float_asm(BENCH_MAT_SIZE_FLOAT);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	volatile float res_mat_mul_float_asm_nosf = benchmark_mat_mul_float_asm_nosf(BENCH_MAT_SIZE_FLOAT);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile float res_mat_mul_asm_nop = benchmark_mat_mul_asm_nop(BENCH_MAT_SIZE_FLOAT);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile float res_mat_mul_float_asm_nop = benchmark_mat_mul_float_asm_nop(BENCH_MAT_SIZE_FLOAT);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile float res_mat_mul_asm_mem = benchmark_mat_mul_asm_mem(BENCH_MAT_SIZE_FLOAT);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	volatile float res_mat_mul_float_asm_mem = benchmark_mat_mul_float_asm_mem(BENCH_MAT_SIZE_FLOAT);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	// volatile uint32_t res_mat_mul_double = benchmark_mat_mul_double(BENCH_MAT_SIZE_DOUBLE);
 	// vTaskDelay(pdMS_TO_TICKS(100));
