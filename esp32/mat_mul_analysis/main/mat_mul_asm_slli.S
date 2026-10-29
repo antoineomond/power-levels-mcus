@@ -1,4 +1,4 @@
-.section .iram1.benchmark_mat_mul_asm_slli, "ax"                              # Code segment
+.section .text.benchmark_mat_mul_asm_slli, "ax"                              # Code segment
 .global benchmark_mat_mul_asm_slli                 # Make this label visible to the linker
 .type benchmark_mat_mul_asm_slli, @function        # Declare label type: function
 

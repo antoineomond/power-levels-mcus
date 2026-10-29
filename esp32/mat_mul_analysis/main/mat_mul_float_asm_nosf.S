@@ -1,4 +1,4 @@
-.section .iram1.benchmark_mat_mul_float_asm_nosf, "ax"                              # Code segment
+.section .text.benchmark_mat_mul_float_asm_nosf, "ax"                              # Code segment
 .global benchmark_mat_mul_float_asm_nosf                 # Make this label visible to the linker
 .type benchmark_mat_mul_float_asm_nosf, @function        # Declare label type: function
 

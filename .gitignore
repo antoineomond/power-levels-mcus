@@ -11,6 +11,7 @@ results/*
 !results/esp32_mat_mul_analysis_iram_only_nomul/
 !results/esp32_mat_mul_analysis_iram_float_nosf/
 !results/esp32_mat_mul_analysis_iram_nop_mem/
+!results/esp32_mat_mul_analysis_sigmetrics_nop_mem/
 !results/stm32/
 *.pdf
 *.png

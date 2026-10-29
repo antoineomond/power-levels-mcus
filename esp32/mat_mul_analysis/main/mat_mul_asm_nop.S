@@ -1,4 +1,4 @@
-.section .iram1.benchmark_mat_mul_asm_nop, "ax"                              # Code segment
+.section .text.benchmark_mat_mul_asm_nop, "ax"                              # Code segment
 .global benchmark_mat_mul_asm_nop                 # Make this label visible to the linker
 .type benchmark_mat_mul_asm_nop, @function        # Declare label type: function
 

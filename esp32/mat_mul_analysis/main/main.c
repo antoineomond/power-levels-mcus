@@ -43,7 +43,7 @@ void disable_gpio(int pin) {
 	gpio_set_pull_mode(pin, GPIO_PULLDOWN_ONLY);
 }
 
-IRAM_ATTR uint32_t compute_primes(uint32_t start, uint32_t end) {
+uint32_t compute_primes(uint32_t start, uint32_t end) {
 	volatile uint32_t cpt = 0;
 	uint32_t is_prime = 1;
 	for (int k = start; k < end; k++) {
@@ -60,7 +60,7 @@ IRAM_ATTR uint32_t compute_primes(uint32_t start, uint32_t end) {
 	return cpt;
 }
 
-IRAM_ATTR uint32_t benchmark_prime(uint32_t benchmark_size) {
+uint32_t benchmark_prime(uint32_t benchmark_size) {
 	vTaskDelay(pdMS_TO_TICKS(3000));
 	set_gpio(EXPE_PIN, 1);
 	volatile uint32_t cpt = compute_primes(2, benchmark_size);
@@ -84,7 +84,7 @@ extern uint32_t benchmark_mat_mul_asm_li(uint32_t size);
 extern uint32_t benchmark_mat_mul_asm_mul(uint32_t size);
 extern uint32_t benchmark_mat_mul_asm_slli(uint32_t size);
 
-IRAM_ATTR uint32_t benchmark_mat_mul(uint32_t size) {
+uint32_t benchmark_mat_mul(uint32_t size) {
 	volatile uint32_t checksum = 0;
 	srand(SEED);
 	// Three 32-bits matrixes of 72 elements account for 486 kB, which should account for all 8 memory banks in SRAM0 and SRAM1
@@ -121,7 +121,7 @@ IRAM_ATTR uint32_t benchmark_mat_mul(uint32_t size) {
 	return checksum;
 }
 
-IRAM_ATTR float benchmark_mat_mul_float(uint32_t size) {
+float benchmark_mat_mul_float(uint32_t size) {
 	volatile float checksum = 0;
 	srand(SEED);
 	// Three 32-bits matrixes of 72 elements account for 486 kB, which should account for all 8 memory banks in SRAM0 and SRAM1
@@ -159,7 +159,7 @@ IRAM_ATTR float benchmark_mat_mul_float(uint32_t size) {
 	return checksum;
 }
 
-IRAM_ATTR double benchmark_mat_mul_double(uint32_t size) {
+double benchmark_mat_mul_double(uint32_t size) {
 	volatile double checksum = 0;
 	srand(SEED);
 	// Three 32-bits matrixes of 72 elements account for 486 kB, which should account for all 8 memory banks in SRAM0 and SRAM1
